@@ -11,6 +11,9 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+console.log('Clarifai PAT:', process.env.CLARIFAI_PAT);
+
+
 app.post('/detect', async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'No text provided' });
