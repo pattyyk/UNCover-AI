@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI vs Human Text Detector</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+
+    .app-container {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(118, 75, 162, 0.3);
+      width: 95%;
+      max-width: 650px;
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    h1 {
+      text-align: center;
+      font-weight: 600;
+      font-size: 2.75rem;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      border-radius: 16px;
+      border: none;
+      padding: 20px;
+      font-size: 1.1rem;
+      resize: vertical;
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: inset 0 0 15px rgba(118, 75, 162, 0.25);
+    }
+
+    textarea:focus {
+      outline: none;
+      box-shadow: 0 0 20px #764ba2;
+      background: white;
+    }
+
+    .info-bar {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #eee;
+      user-select: none;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 14px;
+      padding: 16px 24px;
+      font-weight: 600;
+      font-size: 1.15rem;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 6px 18px rgba(118, 75, 162, 0.35);
+      color: white;
+      background: linear-gradient(45deg, #6a11cb, #2575fc);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    button:hover:not(:disabled) {
+      background: linear-gradient(45deg, #2575fc, #6a11cb);
+      box-shadow: 0 9px 25px rgba(101, 78, 230, 0.6);
+    }
+
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .result {
+      margin-top: 20px;
+      border-radius: 20px;
+      padding: 28px 32px;
+      font-weight: 700;
+      font-size: 1.5rem;
+      text-align: center;
+      user-select: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .result.human {
+      color: #16a34a;
+      background: #dcfce7;
+      border: 3px solid #16a34a;
+      box-shadow: 0 0 20px #16a34aaa;
+    }
+
+    .result.ai {
+      color: #b91c1c;
+      background: #fee2e2;
+      border: 3px solid #b91c1c;
+      box-shadow: 0 0 20px #b91c1caa;
+    }
+
+    .result-icon {
+      font-size: 2.5rem;
+    }
+
+    #copyBtn {
+      background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+      color: #7f1d1d;
+      font-weight: 700;
+      box-shadow: 0 6px 18px rgba(255, 154, 158, 0.6);
+    }
+
+    #copyBtn:hover:not(:disabled) {
+      background: linear-gradient(45deg, #fad0c4, #ff9a9e);
+      box-shadow: 0 9px 25px rgba(250, 208, 196, 0.8);
+    }
+
+    #confidenceWrapper {
+      display: none;
+      margin-top: 10px;
+    }
+
+    #confidenceWrapper label {
+      color: white;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    #confidenceBar {
+      height: 18px;
+      width: 0%;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(90deg, #16a34a, #22c55e);
+      transition: width 0.5s ease-in-out;
+      border-radius: 20px;
+    }
+
+    @media (max-width: 480px) {
+      .app-container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="app-container" role="main" aria-label="AI versus Human Text Detector">
+    <h1>AI vs Human Text Detector</h1>
+
+    <textarea id="inputText" placeholder="Type or paste your text here..." aria-label="Text input area"></textarea>
+
+    <div class="info-bar" aria-live="polite">
+      <div>Words: <span id="wordCount">0</span></div>
+      <div>Characters: <span id="charCount">0</span></div>
+    </div>
+
+    <button id="detectBtn" aria-label="Detect text type">Detect Text Type 🔍</button>
+    <button id="copyBtn" aria-label="Copy detection result" disabled>Copy Result 📋</button>
+
+    <div id="result" class="result" role="status" aria-live="polite" aria-atomic="true">
+      <span id="resultIcon" class="result-icon" aria-hidden="true"></span>
+      <span id="resultText"></span>
+    </div>
+
+    <div id="confidenceWrapper">
+      <label>Confidence Level</label>
+      <div style="background: #ddd; border-radius: 20px; overflow: hidden;">
+        <div id="confidenceBar">0%</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const inputText = document.getElementById('inputText');
+    const wordCount = document.getElementById('wordCount');
+    const charCount = document.getElementById('charCount');
+    const detectBtn = document.getElementById('detectBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const result = document.getElementById('result');
+    const resultIcon = document.getElementById('resultIcon');
+    const resultText = document.getElementById('resultText');
+    const confidenceBar = document.getElementById('confidenceBar');
+    const confidenceWrapper = document.getElementById('confidenceWrapper');
+
+    const humanKeywords = ['hi', 'my', 'name', 'hello', 'thanks', 'please', 'yeah', 'okay', 'sure'];
+    const aiKeywords = ['ai', 'artificial intelligence', 'machine learning', 'language model', 'openai', 'chatgpt', 'gpt'];
+
+    let resetTimeout;
+
+    inputText.addEventListener('input', () => {
+      const text = inputText.value.trim();
+      const words = text === '' ? 0 : text.split(/\s+/).length;
+      wordCount.textContent = words;
+      charCount.textContent = text.length;
+      result.style.display = 'none';
+      copyBtn.disabled = true;
+      confidenceWrapper.style.display = 'none';
+    });
+
+    detectBtn.addEventListener('click', () => {
+      const text = inputText.value.trim().toLowerCase();
+      if (!text) {
+        alert('Please enter some text to detect!');
+        return;
+      }
+
+      const foundAI = aiKeywords.some(kw => text.includes(kw));
+      const foundHuman = humanKeywords.some(kw => text.includes(kw));
+
+      if (foundAI) {
+        showResult('AI-generated text', 'ai', '🤖');
+      } else if (foundHuman) {
+        showResult('Human-written text', 'human', '👤');
+      } else {
+        showResult('Human-written text', 'human', '👤');
+      }
+
+      clearTimeout(resetTimeout);
+      resetTimeout = setTimeout(() => {
+        result.style.display = 'none';
+        confidenceWrapper.style.display = 'none';
+        copyBtn.disabled = true;
+      }, 30000);
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const txt = resultText.textContent;
+      if (txt) {
+        navigator.clipboard.writeText(txt).then(() => {
+          copyBtn.textContent = 'Copied ✔️';
+          setTimeout(() => copyBtn.textContent = 'Copy Result 📋', 1500);
+        });
+      }
+    });
+
+    function showResult(text, cls, icon) {
+      resultText.textContent = text;
+      result.className = 'result ' + cls;
+      resultIcon.textContent = icon;
+      result.style.display = 'flex';
+      copyBtn.disabled = false;
+
+      confidenceWrapper.style.display = 'block';
+      const input = inputText.value.trim().toLowerCase();
+      const aiMatches = aiKeywords.filter(kw => input.includes(kw)).length;
+      const humanMatches = humanKeywords.filter(kw => input.includes(kw)).length;
+      const total = aiMatches + humanMatches;
+      let confidence = 0;
+
+      if (cls === 'ai') {
+        confidence = total ? Math.round((aiMatches / total) * 100) : 100;
+        confidenceBar.style.background = 'linear-gradient(90deg, #dc2626, #ef4444)';
+      } else {
+        confidence = total ? Math.round((humanMatches / total) * 100) : 100;
+        confidenceBar.style.background = 'linear-gradient(90deg, #16a34a, #22c55e)';
+      }
+
+      confidenceBar.style.width = confidence + '%';
+      confidenceBar.textContent = confidence + '%';
+    }
+  </script>
+</body>
+</html>
+
+
+
