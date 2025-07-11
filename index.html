@@ -414,7 +414,7 @@
   detectBtn.textContent = 'Detecting...';
 
   try {
-    const response = await fetch('https://uncover-ai.onrender.com', {  // Change URL when deployed
+    const response = await fetch('https://uncover-ai.onrender.com/detect', {  // Change URL when deployed
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
