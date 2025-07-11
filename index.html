@@ -401,6 +401,481 @@
       reasoning.textContent = '';
     });
 
+   
+
+    detectBtn.addEventListener('click', async () => {
+  const inputValue = inputText.value.trim();
+  if (!inputValue) {
+    alert('Please enter some text to detect!');
+    return;
+  }
+
+  detectBtn.disabled = true;
+  detectBtn.textContent = 'Detecting...';
+
+  try {
+    const response = await fetch('http://localhost:3000/detect', {  // Change URL when deployed
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ text: inputValue })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Detection failed');
+    }
+
+    const data = await response.json();
+    console.log('Backend response:', data);
+
+    if (!data.outputs || !data.outputs[0].data.concepts) {
+      throw new Error("No concepts returned from backend.");
+    }
+
+    const concepts = data.outputs[0].data.concepts;
+    const topConcept = concepts[0];
+    const label = topConcept.name;
+    const confidence = Math.round(topConcept.value * 100);
+
+    result.style.display = 'flex';
+    resultText.textContent = `Prediction: ${label} (${confidence}%)`;
+    resultIcon.textContent = label.toLowerCase().includes("ai") ? "🤖" : "👤";
+    reasoning.textContent = `Clarifai classified this as "${label}" with ${confidence}% confidence.`;
+    confidenceBar.style.width = `${confidence}%`;
+    confidenceBar.textContent = `${confidence}%`;
+    confidenceWrapper.style.display = 'block';
+    copyBtn.disabled = false;
+
+  } catch (error) {
+    console.error('Error:', error);
+    alert(error.message);
+  }
+
+  detectBtn.disabled = false;
+  detectBtn.textContent = 'Detect Text Type 🔍';
+});
+
+
+
+
+
+    copyBtn.addEventListener('click', () => {
+      const txt = resultText.textContent;
+      if (txt) {
+        navigator.clipboard.writeText(txt).then(() => {
+          copyBtn.textContent = 'Copied ✔️';
+          setTimeout(() => copyBtn.textContent = 'Copy Result 📋', 1500);
+        });
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      inputText.value = '';
+      wordCount.textContent = '0';
+      charCount.textContent = '0';
+      result.style.display = 'none';
+      confidenceWrapper.style.display = 'none';
+      copyBtn.disabled = true;
+      reasoning.textContent = '';
+    });
+
+    function showResult(text, cls, icon) {
+      resultText.textContent = text;
+      result.className = 'result ' + cls;
+      resultIcon.textContent = icon;
+      result.style.display = 'flex';
+      copyBtn.disabled = false;
+
+      confidenceWrapper.style.display = 'block';
+      const input = inputText.value.trim().toLowerCase();
+      const aiMatches = aiKeywords.filter(kw => new RegExp(`\\b${kw}\\b`, 'i').test(input)).length;
+      const humanMatches = humanKeywords.filter(kw => new RegExp(`\\b${kw}\\b`, 'i').test(input)).length;
+      const total = aiMatches + humanMatches;
+      let confidence = 0;
+
+      if (cls === 'ai') {
+        confidence = total ? Math.round((aiMatches / total) * 100) : 90;
+      }
+
+    }
+  </script>
+      gap: 24px;
+      padding: 12px 24px;
+      justify-content: center;
+    }
+
+    nav a {
+      color: white;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 1.1rem;
+      padding: 10px 20px;
+      border-radius: 14px;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    nav a:hover {
+      background: rgba(255 255 255 / 0.3);
+      box-shadow: 0 0 10px rgba(255 255 255 / 0.5);
+    }
+
+    nav a.active {
+      background: #764ba2;
+      box-shadow: 0 0 18px #764ba2aa;
+    }
+
+    main {
+      flex: 1;
+      padding: 32px 24px;
+      max-width: 720px;
+      margin: 0 auto 48px;
+      width: 95%;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(118, 75, 162, 0.3);
+      color: #fff;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    h1 {
+      text-align: center;
+      font-weight: 600;
+      font-size: 2.75rem;
+      margin-bottom: 24px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
+
+    /* Textarea and button styles for Detector and Fake News */
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      border-radius: 16px;
+      border: none;
+      padding: 20px;
+      font-size: 1.1rem;
+      resize: vertical;
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: inset 0 0 15px rgba(118, 75, 162, 0.25);
+      color: #000;
+      font-family: inherit;
+    }
+
+    textarea:focus {
+      outline: none;
+      box-shadow: 0 0 20px #764ba2;
+      background: white;
+    }
+
+    .info-bar {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #eee;
+      user-select: none;
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 14px;
+      padding: 16px 24px;
+      font-weight: 600;
+      font-size: 1.15rem;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 6px 18px rgba(118, 75, 162, 0.35);
+      color: white;
+      background: linear-gradient(45deg, #6a11cb, #2575fc);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-right: 12px;
+    }
+
+    button:hover:not(:disabled) {
+      background: linear-gradient(45deg, #2575fc, #6a11cb);
+      box-shadow: 0 9px 25px rgba(101, 78, 230, 0.6);
+    }
+
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .result {
+      margin-top: 20px;
+      border-radius: 20px;
+      padding: 28px 32px;
+      font-weight: 700;
+      font-size: 1.5rem;
+      text-align: center;
+      user-select: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      color: #333;
+    }
+
+    .result.human {
+      color: #16a34a;
+      background: #dcfce7;
+      border: 3px solid #16a34a;
+      box-shadow: 0 0 20px #16a34aaa;
+      display: flex;
+    }
+
+    .result.ai {
+      color: #b91c1c;
+      background: #fee2e2;
+      border: 3px solid #b91c1c;
+      box-shadow: 0 0 20px #b91c1caa;
+      display: flex;
+    }
+
+    .result-icon {
+      font-size: 2.5rem;
+    }
+
+    #copyBtn {
+      background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+      color: #7f1d1d;
+      font-weight: 700;
+      box-shadow: 0 6px 18px rgba(255, 154, 158, 0.6);
+    }
+
+    #copyBtn:hover:not(:disabled) {
+      background: linear-gradient(45deg, #fad0c4, #ff9a9e);
+      box-shadow: 0 9px 25px rgba(250, 208, 196, 0.8);
+    }
+
+    #clearBtn {
+      background: #facc15;
+      color: #78350f;
+      font-weight: bold;
+      box-shadow: 0 6px 18px rgba(234, 179, 8, 0.6);
+    }
+
+    #clearBtn:hover:not(:disabled) {
+      background: #fde68a;
+      box-shadow: 0 9px 25px rgba(234, 179, 8, 0.8);
+    }
+
+    #confidenceWrapper {
+      display: none;
+      margin-top: 10px;
+    }
+
+    #confidenceWrapper label {
+      color: white;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    #confidenceBar {
+      height: 18px;
+      width: 0%;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(90deg, #16a34a, #22c55e);
+      transition: width 0.5s ease-in-out;
+      border-radius: 20px;
+    }
+
+    #reasoning {
+      color: white;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: -10px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      main {
+        padding: 24px 16px;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      button {
+        padding: 12px 18px;
+        font-size: 1rem;
+      }
+      nav {
+        gap: 12px;
+        padding: 8px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav role="navigation" aria-label="Primary navigation tabs">
+    <a href="#home" id="linkHome" aria-selected="false" tabindex="0">Home</a>
+    <a href="#detector" id="linkDetector" aria-selected="true" class="active" tabindex="0">Detector</a>
+    <a href="fakenewsdetection.html" id="linkFakeNews" aria-selected="false" tabindex="0">Fake News</a>
+    <a href="#about" id="linkAbout" aria-selected="false" tabindex="0">About Us</a>
+  </nav>
+
+  <main>
+
+    <!-- HOME -->
+    <section id="home" class="section" role="tabpanel" aria-labelledby="linkHome" tabindex="0" hidden>
+      <h1>Welcome to the AI & Fake News Detection App</h1>
+      <p style="text-align:center; font-size:1.2rem; max-width:600px; margin: 0 auto;">
+        Use the tabs above to switch between the AI vs Human Text Detector, Fake News Detector, and learn more About Us.
+      </p>
+    </section>
+
+    <!-- DETECTOR -->
+    <section id="detector" class="section active" role="tabpanel" aria-labelledby="linkDetector" tabindex="0">
+      <h1>AI vs Human Text Detector</h1>
+
+      <textarea id="inputText" placeholder="Type or paste your text here..." aria-label="Text input area"></textarea>
+
+      <div class="info-bar" aria-live="polite">
+        <div>Words: <span id="wordCount">0</span></div>
+        <div>Characters: <span id="charCount">0</span></div>
+      </div>
+
+      <button id="detectBtn" aria-label="Detect text type">Detect Text Type 🔍</button>
+      <button id="copyBtn" aria-label="Copy detection result" disabled>Copy Result 📋</button>
+      <button id="clearBtn" aria-label="Clear text area">Clear 🧹</button>
+
+      <div id="result" class="result" role="status" aria-live="polite" aria-atomic="true" aria-live="polite" aria-atomic="true" style="display:none;">
+        <span id="resultIcon" class="result-icon" aria-hidden="true"></span>
+        <span id="resultText"></span>
+      </div>
+
+      <div id="reasoning"></div>
+
+      <div id="confidenceWrapper" title="Confidence is based on how many AI vs Human keywords were matched." style="display:none;">
+        <label>Confidence Level</label>
+        <div style="background: #ddd; border-radius: 20px; overflow: hidden;">
+          <div id="confidenceBar">0%</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAKE NEWS -->
+    <section id="fakeNews" class="section" role="tabpanel" aria-labelledby="linkFakeNews" tabindex="0" hidden>
+      <h1>Fake News Detection</h1>
+
+      <textarea id="fakeNewsInput" placeholder="Paste news article or text here..." aria-label="Fake news input area"></textarea>
+
+      <div class="info-bar" aria-live="polite">
+        <div>Words: <span id="fnWordCount">0</span></div>
+        <div>Characters: <span id="fnCharCount">0</span></div>
+      </div>
+
+      <button id="fakeNewsDetectBtn" aria-label="Detect fake news">Detect Fake News 📰</button>
+      <button id="fakeNewsCopyBtn" aria-label="Copy fake news detection result" disabled>Copy Result 📋</button>
+      <button id="fakeNewsClearBtn" aria-label="Clear fake news text area">Clear 🧹</button>
+
+      <div id="fakeNewsResult" class="result" role="status" aria-live="polite" aria-atomic="true" style="display:none;">
+        <span id="fakeNewsResultIcon" class="result-icon" aria-hidden="true"></span>
+        <span id="fakeNewsResultText"></span>
+      </div>
+
+      <div id="fakeNewsReasoning"></div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section" role="tabpanel" aria-labelledby="linkAbout" tabindex="0" hidden>
+      <h1>About Us</h1>
+      <p style="max-width:600px; margin: 0 auto; font-size: 1.1rem; line-height: 1.5; color: white;">
+        Welcome to our AI & Fake News Detection app! Our mission is to provide easy-to-use, accurate tools to help you
+        identify AI-generated text and detect fake news articles. We use keyword-based heuristic methods in this
+        frontend-only app for quick, offline detection with instant feedback. Thank you for using our app and stay
+        informed and aware!
+      </p>
+    </section>
+
+  </main>
+
+  <script>
+    // NAVIGATION LOGIC USING HASH
+    function handleHashChange() {
+      const hash = window.location.hash || '#detector'; // default tab is detector
+      const sections = document.querySelectorAll('.section');
+      const links = document.querySelectorAll('nav a');
+
+      sections.forEach(section => {
+        if ('#' + section.id === hash) {
+          section.classList.add('active');
+          section.removeAttribute('hidden');
+          section.setAttribute('tabindex', '0');
+        } else {
+          section.classList.remove('active');
+          section.setAttribute('hidden', '');
+          section.setAttribute('tabindex', '-1');
+        }
+      });
+
+      links.forEach(link => {
+        if (link.getAttribute('href') === hash) {
+          link.classList.add('active');
+          link.setAttribute('aria-selected', 'true');
+          link.setAttribute('tabindex', '0');
+        } else {
+          link.classList.remove('active');
+          link.setAttribute('aria-selected', 'false');
+          link.setAttribute('tabindex', '-1');
+        }
+      });
+    }
+
+    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('load', handleHashChange);
+
+    // === Detector Tab Logic ===
+
+    const inputText = document.getElementById('inputText');
+    const wordCount = document.getElementById('wordCount');
+    const charCount = document.getElementById('charCount');
+    const detectBtn = document.getElementById('detectBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const result = document.getElementById('result');
+    const resultIcon = document.getElementById('resultIcon');
+    const resultText = document.getElementById('resultText');
+    const confidenceBar = document.getElementById('confidenceBar');
+    const confidenceWrapper = document.getElementById('confidenceWrapper');
+    const reasoning = document.getElementById('reasoning');
+
+    const humanKeywords = ['hi', 'my', 'name', 'hello', 'thanks', 'please', 'yeah', 'okay', 'sure'];
+    const aiKeywords = ['ai', 'artificial intelligence', 'machine learning', 'language model', 'openai', 'chatgpt', 'gpt'];
+
+    let resetTimeout;
+
+    inputText.addEventListener('input', () => {
+      const text = inputText.value.trim();
+      const words = text === '' ? 0 : text.split(/\s+/).length;
+      wordCount.textContent = words;
+      charCount.textContent = text.length;
+      result.style.display = 'none';
+      copyBtn.disabled = true;
+      confidenceWrapper.style.display = 'none';
+      reasoning.textContent = '';
+    });
+
     const PAT = 'ef0c29ee3ebb46b9bf4c19565398b472'; // Paste your Clarifai Personal Access Token here
 const USER_ID = 'pattyyk'; // From Clarifai > Settings
 const APP_ID = 'UNCover-AI';   // From Clarifai > Settings
