@@ -403,7 +403,7 @@
 
    
 
-   detectBtn.addEventListener('click', async () => {
+  detectBtn.addEventListener('click', async () => {
   const inputValue = inputText.value.trim();
   if (!inputValue) {
     alert('Please enter some text to detect!');
@@ -414,7 +414,7 @@
   detectBtn.textContent = 'Detecting...';
 
   try {
-    const response = await fetch('https://uncover-ai.onrender.com/detect', { // your backend endpoint
+    const response = await fetch('https://uncover-ai.onrender.com/detect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: inputValue })
@@ -426,14 +426,13 @@
     }
 
     const data = await response.json();
-    console.log('Backend response:', data);
+    console.log('Backend response:', data); // ✅ log here
 
-   const label = data[0]?.label.toLowerCase();
-const confidence = Math.round(data[0]?.score * 100);
-
+    const label = data.label || 'unknown'; // ✅ safe fallback
+    const confidence = isNaN(data.confidence) ? 0 : data.confidence; // ✅ safe fallback
 
     result.style.display = 'flex';
-    resultText.textContent = `Prediction: ${label ? label.toUpperCase() : 'UNKNOWN'} (${confidence}%)`;
+    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
 
     if (label === "real") {
       result.className = 'result human';
@@ -443,7 +442,7 @@ const confidence = Math.round(data[0]?.score * 100);
       resultIcon.textContent = "🤖";
     } else {
       result.className = 'result';
-      resultIcon.textContent = "";
+      resultIcon.textContent = "❓";
     }
 
     confidenceBar.style.width = `${confidence}%`;
@@ -459,6 +458,7 @@ const confidence = Math.round(data[0]?.score * 100);
   detectBtn.disabled = false;
   detectBtn.textContent = 'Detect Text Type 🔍';
 });
+
 
 
 
