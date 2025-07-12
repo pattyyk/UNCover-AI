@@ -50,21 +50,27 @@ app.post('/detect', async (req, res) => {
       return res.status(500).json({ error: 'No predictions returned by the model.' });
     }
 
-    const topPrediction = predictions.sort((a, b) => b.score - a.score)[0];
+    const topPrediction = data[0];
 
-    if (!topPrediction || !topPrediction.label || typeof topPrediction.score !== 'number') {
-      return res.status(500).json({ error: 'Missing label or score in HF API response', details: topPrediction });
-    }
+if (!topPrediction.label || typeof topPrediction.score !== 'number') {
+  return res.status(500).json({ error: 'Missing label or score in HF API response' });
+}
 
-    const labelMap = {
-      'LABEL_0': 'real',
-      'LABEL_1': 'fake'
-    };
+const rawLabel = topPrediction.label.toLowerCase();
+const confidence = Math.round(topPrediction.score * 100);
 
-    const mappedLabel = labelMap[topPrediction.label] || 'unknown';
-    const confidence = Math.round(topPrediction.score * 100);
+// ✅ Map HF label to friendly label for frontend
+let label;
+if (rawLabel.includes('real') || rawLabel === 'label_0') {
+  label = 'real';
+} else if (rawLabel.includes('fake') || rawLabel === 'label_1') {
+  label = 'fake';
+} else {
+  label = 'unknown'; // just in case
+}
 
-    return res.json({ label: mappedLabel, confidence });
+res.json({ label, confidence });
+
 
   } catch (error) {
     console.error('Server error:', error);
