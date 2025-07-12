@@ -61,13 +61,22 @@ app.post('/detect', async (req, res) => {
       return res.status(500).json({ error: 'Missing label or score in HF API response' });
     }
 
-    const rawLabel = topPrediction.label.toLowerCase();
-    const confidence = Math.round(topPrediction.score * 100);
+const rawLabel = topPrediction.label.toLowerCase();
+const confidence = Math.round(topPrediction.score * 100);
 
-    // Map raw label to friendly label for frontend: human = real, ai = fake
-    let label;
-    if (rawLabel === 'label_0' || rawLabel.includes('real')) {
-      label
+// Map raw label to friendly label for frontend: human = real, ai = fake
+let label;
+if (rawLabel === 'label_0' || rawLabel.includes('real')) {
+  label = 'human';
+} else if (rawLabel === 'label_1' || rawLabel.includes('fake')) {
+  label = 'ai';
+} else {
+  console.warn('⚠️ Unknown label format from HF:', rawLabel);
+  label = `unknown (${rawLabel})`;
+}
+
+res.json({ label, confidence });
+
 
 
 
