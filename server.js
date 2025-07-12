@@ -86,3 +86,6 @@ console.log('🧪 Hugging Face raw response:\n', JSON.stringify(data, null, 2));
 console.log('Starting server...');
 console.log('PORT:', port);
 console.log('HUGGINGFACE_API_TOKEN:', !!process.env.HUGGINGFACE_API_TOKEN);
+console.log('🔍 label:', topPrediction.label);
+console.log('📊 score:', topPrediction.score);
+
