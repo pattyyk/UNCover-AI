@@ -428,11 +428,12 @@
     const data = await response.json();
     console.log('Backend response:', data);
 
-    const label = data.label;        // "real" or "fake"
-    const confidence = data.confidence;
+   const label = data[0]?.label.toLowerCase();
+const confidence = Math.round(data[0]?.score * 100);
+
 
     result.style.display = 'flex';
-    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
+    resultText.textContent = `Prediction: ${label ? label.toUpperCase() : 'UNKNOWN'} (${confidence}%)`;
 
     if (label === "real") {
       result.className = 'result human';
