@@ -74,10 +74,17 @@ if (rawLabel === 'label_0' || rawLabel.includes('real')) {
   console.warn('⚠️ Unknown label format from HF:', rawLabel);
   label = `unknown (${rawLabel})`;
 }
-
+let icon;
+if (label === 'ai') {
+  icon = '🤖';
+} else if (label === 'human') {
+  icon = '👤';
+} else {
+  icon = '❓';
+}
     // ... your existing code inside try ...
 
-    res.json({ label, confidence });
+    res.json({ label, confidence, icon });
 
   } catch (error) {
     console.error('Server error:', error);
