@@ -44,34 +44,31 @@ app.post('/detect', async (req, res) => {
     const data = await response.json();
     console.log('HF API raw response:', data);
 
-    const predictions = Array.isArray(data[0]) ? data[0] : data;
+    const predictions = Array.isArray(data) ? data : data[0];
 
     if (!Array.isArray(predictions) || predictions.length === 0) {
       return res.status(500).json({ error: 'No predictions returned by the model.' });
     }
-    console.log('HF API raw response:', data);
 
-    const topPrediction = data[0];
+    const topPrediction = predictions[0];
 
-if (!topPrediction.label || typeof topPrediction.score !== 'number') {
-  return res.status(500).json({ error: 'Missing label or score in HF API response' });
-}
+    if (!topPrediction.label || typeof topPrediction.score !== 'number') {
+      return res.status(500).json({ error: 'Missing label or score in HF API response' });
+    }
 
-const rawLabel = topPrediction.label.toLowerCase();
-const confidence = Math.round(topPrediction.score * 100);
+    const rawLabel = topPrediction.label.toLowerCase();
+    const confidence = Math.round(topPrediction.score * 100);
 
-// ✅ Map HF label to friendly label for frontend
-let label;
-if (rawLabel.includes('real') || rawLabel === 'label_0') {
-  label = 'real';
-} else if (rawLabel.includes('fake') || rawLabel === 'label_1') {
-  label = 'fake';
-} else {
-  label = 'unknown'; // just in case
-}
+    let label;
+    if (rawLabel.includes('real') || rawLabel === 'label_0') {
+      label = 'real';
+    } else if (rawLabel.includes('fake') || rawLabel === 'label_1') {
+      label = 'fake';
+    } else {
+      label = 'unknown';
+    }
 
-res.json({ label, confidence });
-
+    res.json({ label, confidence });
 
   } catch (error) {
     console.error('Server error:', error);
