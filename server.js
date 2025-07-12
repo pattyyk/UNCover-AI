@@ -41,33 +41,38 @@ app.post('/detect', async (req, res) => {
       return res.status(response.status).json({ error });
     }
 
-const data = await response.json();
-console.log('HF API response:', data);
+    const data = await response.json();
+    console.log('HF API raw response:', data);
 
-// Flatten if nested (handle [[{label, score}, ...]])
-const predictions = Array.isArray(data[0]) ? data[0] : data;
+    const predictions = Array.isArray(data[0]) ? data[0] : data;
 
-// Sort by confidence
-const sorted = predictions.sort((a, b) => b.score - a.score);
-const topPrediction = sorted[0];
+    if (!Array.isArray(predictions) || predictions.length === 0) {
+      return res.status(500).json({ error: 'No predictions returned by the model.' });
+    }
 
-// Check if label and score exist
-if (!topPrediction || !topPrediction.label || typeof topPrediction.score !== 'number') {
-  console.error('Invalid top prediction:', topPrediction);
-  return res.status(500).json({ error: 'Missing label or score in HF API response', details: topPrediction });
-}
+    const topPrediction = predictions.sort((a, b) => b.score - a.score)[0];
 
-const label = topPrediction.label.toLowerCase();
-const confidence = Math.round(topPrediction.score * 100);
+    if (!topPrediction || !topPrediction.label || typeof topPrediction.score !== 'number') {
+      return res.status(500).json({ error: 'Missing label or score in HF API response', details: topPrediction });
+    }
 
-res.json({ label, confidence });
+    const labelMap = {
+      'LABEL_0': 'real',
+      'LABEL_1': 'fake'
+    };
 
+    const mappedLabel = labelMap[topPrediction.label] || 'unknown';
+    const confidence = Math.round(topPrediction.score * 100);
+
+    return res.json({ label: mappedLabel, confidence });
 
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
+
+
 
 
 
