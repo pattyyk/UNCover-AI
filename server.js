@@ -44,30 +44,24 @@ app.post('/detect', async (req, res) => {
 const data = await response.json();
 console.log('HF API response:', data);
 
-// ✅ Improved check block goes here
-if (!Array.isArray(data)) {
-  return res.status(500).json({ 
-    error: 'Unexpected non-array response from HF API', 
-    details: data 
-  });
-}
+// Flatten if nested (handle [[{label, score}, ...]])
+const predictions = Array.isArray(data[0]) ? data[0] : data;
 
-const topPrediction = data[0];
+// Sort by confidence
+const sorted = predictions.sort((a, b) => b.score - a.score);
+const topPrediction = sorted[0];
 
+// Check if label and score exist
 if (!topPrediction || !topPrediction.label || typeof topPrediction.score !== 'number') {
-  console.error('Invalid prediction object:', topPrediction);
-  return res.status(500).json({ 
-    error: 'Missing label or score in HF API response', 
-    details: topPrediction 
-  });
+  console.error('Invalid top prediction:', topPrediction);
+  return res.status(500).json({ error: 'Missing label or score in HF API response', details: topPrediction });
 }
 
 const label = topPrediction.label.toLowerCase();
 const confidence = Math.round(topPrediction.score * 100);
 
+res.json({ label, confidence });
 
-
-    res.json({ label, confidence });
 
   } catch (error) {
     console.error('Server error:', error);
