@@ -41,8 +41,11 @@ app.post('/detect', async (req, res) => {
       return res.status(response.status).json({ error });
     }
 
-    const data = await response.json();
-    console.log('HF API raw response (full):', JSON.stringify(data, null, 2));
+   const data = await response.json();
+console.log('🧪 Hugging Face raw response:\n', JSON.stringify(data, null, 2));
+
+  return res.status(200).json({ debug: data }); // ← TEMPORARY
+
 
     const predictions = Array.isArray(data) ? data : data[0];
 
