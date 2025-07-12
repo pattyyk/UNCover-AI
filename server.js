@@ -7,6 +7,9 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
 
 // ✅ Use CORS config before routes
 app.use(cors({
@@ -49,3 +52,6 @@ app.post('/detect', async (req, res) => {
   }
 });
 
+console.log('Starting server...');
+console.log('PORT:', port);
+console.log('HUGGINGFACE_API_TOKEN:', !!process.env.HUGGINGFACE_API_TOKEN);
