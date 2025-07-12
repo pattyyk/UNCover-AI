@@ -403,7 +403,7 @@
 
    
 
-    detectBtn.addEventListener('click', async () => {
+   detectBtn.addEventListener('click', async () => {
   const inputValue = inputText.value.trim();
   if (!inputValue) {
     alert('Please enter some text to detect!');
@@ -414,11 +414,9 @@
   detectBtn.textContent = 'Detecting...';
 
   try {
-    const response = await fetch('https://uncover-ai.onrender.com/detect', {
+    const response = await fetch('https://uncover-ai.onrender.com/detect', { // your backend endpoint
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: inputValue })
     });
 
@@ -430,15 +428,23 @@
     const data = await response.json();
     console.log('Backend response:', data);
 
-    // Parse Hugging Face response (adjust if needed)
-    const prediction = data[0]?.label || 'Unknown';
-    const score = data[0]?.score || 0;
-    const confidence = Math.round(score * 100);
+    const label = data.label;        // "real" or "fake"
+    const confidence = data.confidence;
 
     result.style.display = 'flex';
-    resultText.textContent = `Prediction: ${prediction} (${confidence}%)`;
-    resultIcon.textContent = prediction.toLowerCase().includes("ai") ? "🤖" : "👤";
-    reasoning.textContent = `This model classified it as "${prediction}" with ${confidence}% confidence.`;
+    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
+
+    if (label === "real") {
+      result.className = 'result human';
+      resultIcon.textContent = "👤";
+    } else if (label === "fake") {
+      result.className = 'result ai';
+      resultIcon.textContent = "🤖";
+    } else {
+      result.className = 'result';
+      resultIcon.textContent = "";
+    }
+
     confidenceBar.style.width = `${confidence}%`;
     confidenceBar.textContent = `${confidence}%`;
     confidenceWrapper.style.display = 'block';
@@ -452,7 +458,6 @@
   detectBtn.disabled = false;
   detectBtn.textContent = 'Detect Text Type 🔍';
 });
-
 
 
 
