@@ -48,3 +48,8 @@ app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
 
+app.use(cors({
+  origin: 'https://pattyyk.github.io',  // allow only your frontend domain
+  methods: ['GET', 'POST'],             // allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization']  // headers frontend will send
+}));
