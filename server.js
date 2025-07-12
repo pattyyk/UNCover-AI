@@ -83,7 +83,7 @@ if (label === 'ai') {
   icon = '❓';
 }
     // ... your existing code inside try ...
-
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.json({ label, confidence, icon });
 
   } catch (error) {
