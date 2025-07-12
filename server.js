@@ -42,25 +42,30 @@ app.post('/detect', async (req, res) => {
     }
 
     const data = await response.json();
+    console.log('HF API response:', data);
 
-    // data is expected to be an array of label-score objects
     if (!Array.isArray(data) || data.length === 0) {
       return res.status(500).json({ error: 'Invalid response format from HF API' });
     }
 
-    // Take the top prediction (first element)
     const topPrediction = data[0];
 
-    // Normalize label and convert score to percentage
+    // Check if label and score exist
+    if (!topPrediction.label || typeof topPrediction.score !== 'number') {
+      return res.status(500).json({ error: 'Missing label or score in HF API response' });
+    }
+
     const label = topPrediction.label.toLowerCase();
     const confidence = Math.round(topPrediction.score * 100);
 
     res.json({ label, confidence });
 
   } catch (error) {
+    console.error('Server error:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 console.log('Starting server...');
