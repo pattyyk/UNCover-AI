@@ -63,13 +63,18 @@ console.log('🧪 Hugging Face raw response:\n', JSON.stringify(data, null, 2));
     const confidence = Math.round(topPrediction.score * 100);
 
     let label;
-    if (rawLabel.includes('real') || rawLabel === 'label_0') {
-      label = 'real';
-    } else if (rawLabel.includes('fake') || rawLabel === 'label_1') {
-      label = 'fake';
-    } else {
-      label = 'unknown';
-    }
+if (rawLabel === 'label_0' || rawLabel === 'real') {
+  label = 'real';
+} else if (rawLabel === 'label_1' || rawLabel === 'fake') {
+  label = 'fake';
+} else if (rawLabel.includes('real')) {
+  label = 'real';
+} else if (rawLabel.includes('fake')) {
+  label = 'fake';
+} else {
+  console.warn('⚠️ Unknown label format from HF:', rawLabel);
+  label = `unknown (${rawLabel})`;
+}
 
     res.json({ label, confidence });
 
