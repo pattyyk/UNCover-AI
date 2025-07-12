@@ -17,16 +17,16 @@ app.use(cors({
 
 app.use(express.json());
 
-console.log('Clarifai PAT:', process.env.CLARIFAI_PAT); // You can remove if not using Clarifai
+
 
 app.post('/detect', async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'No text provided' });
 
   try {
-    const response = await fetch('https://uncover-ai.onrender.com/detect', 
+    const response = await fetch(
+      'https://api-inference.huggingface.co/models/roberta-base-openai-detector',
       {
-
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
@@ -47,9 +47,5 @@ app.post('/detect', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
-
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
 });
 
