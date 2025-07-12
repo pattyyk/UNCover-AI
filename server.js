@@ -42,7 +42,7 @@ app.post('/detect', async (req, res) => {
     }
 
     const data = await response.json();
-    console.log('HF API raw response:', data);
+    console.log('HF API raw response (full):', JSON.stringify(data, null, 2));
 
     const predictions = Array.isArray(data) ? data : data[0];
 
