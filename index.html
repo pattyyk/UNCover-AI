@@ -414,7 +414,7 @@
   detectBtn.textContent = 'Detecting...';
 
   try {
-    const response = await fetch('https://uncover-ai.onrender.com/detect', {  // Change URL when deployed
+    const response = await fetch('https://uncover-ai.onrender.com/detect', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -430,19 +430,15 @@
     const data = await response.json();
     console.log('Backend response:', data);
 
-    if (!data.outputs || !data.outputs[0].data.concepts) {
-      throw new Error("No concepts returned from backend.");
-    }
-
-    const concepts = data.outputs[0].data.concepts;
-    const topConcept = concepts[0];
-    const label = topConcept.name;
-    const confidence = Math.round(topConcept.value * 100);
+    // Parse Hugging Face response (adjust if needed)
+    const prediction = data[0]?.label || 'Unknown';
+    const score = data[0]?.score || 0;
+    const confidence = Math.round(score * 100);
 
     result.style.display = 'flex';
-    resultText.textContent = `Prediction: ${label} (${confidence}%)`;
-    resultIcon.textContent = label.toLowerCase().includes("ai") ? "🤖" : "👤";
-    reasoning.textContent = `Clarifai classified this as "${label}" with ${confidence}% confidence.`;
+    resultText.textContent = `Prediction: ${prediction} (${confidence}%)`;
+    resultIcon.textContent = prediction.toLowerCase().includes("ai") ? "🤖" : "👤";
+    reasoning.textContent = `This model classified it as "${prediction}" with ${confidence}% confidence.`;
     confidenceBar.style.width = `${confidence}%`;
     confidenceBar.textContent = `${confidence}%`;
     confidenceWrapper.style.display = 'block';
@@ -456,6 +452,7 @@
   detectBtn.disabled = false;
   detectBtn.textContent = 'Detect Text Type 🔍';
 });
+
 
 
 

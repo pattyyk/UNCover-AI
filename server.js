@@ -24,9 +24,9 @@ app.post('/detect', async (req, res) => {
   if (!text) return res.status(400).json({ error: 'No text provided' });
 
   try {
-    const response = await fetch(
-      'https://api-inference.huggingface.co/models/roberta-base-openai-detector',
+    const response = await fetch('https://uncover-ai.onrender.com/detect', 
       {
+
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
