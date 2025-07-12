@@ -75,17 +75,16 @@ if (rawLabel === 'label_0' || rawLabel.includes('real')) {
   label = `unknown (${rawLabel})`;
 }
 
-res.json({ label, confidence });
+    // ... your existing code inside try ...
 
+    res.json({ label, confidence });
 
-
-
-
-
-
+  } catch (error) {
+    console.error('Server error:', error);
+    return res.status(500).json({ error: error.message });
+  }
+});  // <-- this was missing
 
 console.log('Starting server...');
 console.log('PORT:', port);
 console.log('HUGGINGFACE_API_TOKEN:', !!process.env.HUGGINGFACE_API_TOKEN);
-
-
