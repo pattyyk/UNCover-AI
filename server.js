@@ -48,8 +48,7 @@ app.post('/detect', async (req, res) => {
     const data = await response.json();
     console.log('🧪 Hugging Face raw response:\n', JSON.stringify(data, null, 2));
 
-    // The API returns nested arrays: data = [[{label, score}, ...]]
-    // Extract the inner array if it exists
+    // Extract inner predictions array (nested array case)
     const predictions = Array.isArray(data[0]) ? data[0] : data;
 
     if (!Array.isArray(predictions) || predictions.length === 0) {
@@ -65,24 +64,11 @@ app.post('/detect', async (req, res) => {
     const rawLabel = topPrediction.label.toLowerCase();
     const confidence = Math.round(topPrediction.score * 100);
 
-    // Map raw label to friendly label
+    // Map raw label to friendly label for frontend: human = real, ai = fake
     let label;
     if (rawLabel === 'label_0' || rawLabel.includes('real')) {
-      label = 'real';
-    } else if (rawLabel === 'label_1' || rawLabel.includes('fake')) {
-      label = 'fake';
-    } else {
-      console.warn('⚠️ Unknown label format from HF:', rawLabel);
-      label = `unknown (${rawLabel})`;
-    }
+      label
 
-    res.json({ label, confidence });
-
-  } catch (error) {
-    console.error('Server error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
 
 
 
