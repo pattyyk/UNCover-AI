@@ -49,6 +49,7 @@ app.post('/detect', async (req, res) => {
     if (!Array.isArray(predictions) || predictions.length === 0) {
       return res.status(500).json({ error: 'No predictions returned by the model.' });
     }
+    console.log('HF API raw response:', data);
 
     const topPrediction = data[0];
 
