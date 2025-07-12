@@ -434,16 +434,10 @@
     result.style.display = 'flex';
     resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
 
-    if (label === "real") {
-      result.className = 'result human';
-      resultIcon.textContent = "👤";
-    } else if (label === "fake") {
-      result.className = 'result ai';
-      resultIcon.textContent = "🤖";
-    } else {
-      result.className = 'result';
-      resultIcon.textContent = "❓";
-    }
+    result.className = `result ${label === 'human' ? 'human' : label === 'ai' ? 'ai' : ''}`;
+    resultIcon.textContent = data.icon || "❓";
+
+
 
     confidenceBar.style.width = `${confidence}%`;
     confidenceBar.textContent = `${confidence}%`;
