@@ -27,63 +27,63 @@ app.post('/detect', async (req, res) => {
   if (!text) return res.status(400).json({ error: 'No text provided' });
 
   try {
-    const response = await fetch('https://api-inference.huggingface.co/models/openai-community/roberta-base-openai-detector', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ inputs: text }),
-    });
+    const response = await fetch(
+      'https://api-inference.huggingface.co/models/openai-community/roberta-base-openai-detector',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inputs: text }),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.text();
+      console.error('HuggingFace API error:', error);
       return res.status(response.status).json({ error });
     }
 
- const data = await response.json();
-console.log('🧪 Hugging Face raw response:\n', JSON.stringify(data, null, 2));
+    const data = await response.json();
+    console.log('🧪 Hugging Face raw response:\n', JSON.stringify(data, null, 2));
 
-// Remove or comment this out so function continues:
-// return res.status(200).json({ debug: data }); // ← TEMPORARY
+    // The API returns nested arrays: data = [[{label, score}, ...]]
+    // Extract the inner array if it exists
+    const predictions = Array.isArray(data[0]) ? data[0] : data;
 
-const predictions = Array.isArray(data) ? data : data[0];
+    if (!Array.isArray(predictions) || predictions.length === 0) {
+      return res.status(500).json({ error: 'No predictions returned by the model.' });
+    }
 
-if (!Array.isArray(predictions) || predictions.length === 0) {
-  return res.status(500).json({ error: 'No predictions returned by the model.' });
-}
+    const topPrediction = predictions[0];
 
-const topPrediction = predictions[0];
+    if (!topPrediction.label || typeof topPrediction.score !== 'number') {
+      return res.status(500).json({ error: 'Missing label or score in HF API response' });
+    }
 
-if (!topPrediction.label || typeof topPrediction.score !== 'number') {
-  return res.status(500).json({ error: 'Missing label or score in HF API response' });
-}
+    const rawLabel = topPrediction.label.toLowerCase();
+    const confidence = Math.round(topPrediction.score * 100);
 
-const rawLabel = topPrediction.label.toLowerCase();
-const confidence = Math.round(topPrediction.score * 100);
+    // Map raw label to friendly label
+    let label;
+    if (rawLabel === 'label_0' || rawLabel.includes('real')) {
+      label = 'real';
+    } else if (rawLabel === 'label_1' || rawLabel.includes('fake')) {
+      label = 'fake';
+    } else {
+      console.warn('⚠️ Unknown label format from HF:', rawLabel);
+      label = `unknown (${rawLabel})`;
+    }
 
-let label;
-if (rawLabel === 'label_0' || rawLabel === 'real') {
-  label = 'real';
-} else if (rawLabel === 'label_1' || rawLabel === 'fake') {
-  label = 'fake';
-} else if (rawLabel.includes('real')) {
-  label = 'real';
-} else if (rawLabel.includes('fake')) {
-  label = 'fake';
-} else {
-  console.warn('⚠️ Unknown label format from HF:', rawLabel);
-  label = `unknown (${rawLabel})`;
-}
-
-res.json({ label, confidence });
-
+    res.json({ label, confidence });
 
   } catch (error) {
     console.error('Server error:', error);
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 
 
