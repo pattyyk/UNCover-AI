@@ -426,23 +426,22 @@
     }
 
     const data = await response.json();
-    console.log('Backend response:', data); // ✅ log here
+    console.log('Backend response:', data);
 
-    const label = data.label || 'unknown'; // ✅ safe fallback
-    const confidence = isNaN(data.confidence) ? 0 : data.confidence; // ✅ safe fallback
+    const label = data.label || 'unknown'; // now expecting 'ai' or 'human'
+    const confidence = isNaN(data.confidence) ? 0 : data.confidence;
+    const icon = data.icon || '❓';
 
     result.style.display = 'flex';
     resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
+    resultIcon.textContent = icon;
 
-    if (label === "real") {
-      result.className = 'result human';
-      resultIcon.textContent = "👤";
-    } else if (label === "fake") {
+    if (label === "ai") {
       result.className = 'result ai';
-      resultIcon.textContent = "🤖";
+    } else if (label === "human") {
+      result.className = 'result human';
     } else {
       result.className = 'result';
-      resultIcon.textContent = "❓";
     }
 
     confidenceBar.style.width = `${confidence}%`;
