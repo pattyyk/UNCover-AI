@@ -146,11 +146,20 @@ app.post('/image-detect', async (req, res) => {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ base64: image.split(',')[1] }) // remove data:image/jpeg;base64,
+      body: JSON.stringify({ base64: image.split(',')[1] })
     });
 
     const result = await apiRes.json();
-    res.json(result);
+
+    if (!result || typeof result.ai === 'undefined') {
+      return res.status(500).json({ error: 'Invalid response from Copyleaks' });
+    }
+
+    const label = result.ai ? 'ai' : 'human';
+    const confidence = result.confidence || 0;
+    const icon = label === 'ai' ? '🤖' : '👤';
+
+    res.json({ label, confidence, icon });
 
   } catch (err) {
     console.error('Image detection error:', err);
