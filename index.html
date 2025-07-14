@@ -306,11 +306,10 @@
      <p style="text-align:center; font-size:1.2rem; max-width:600px; margin: 0 auto;">
       Insert or take images to detect AI
       </p>  
-      <button id="camBtn" aria-label="take photo">Take photo 📸 </button>
-      <button id="imgBtn" aria-label="insert photo">Insert photo 🖼️ </button>
       <input type="file" id="imageUpload" accept="image/*" style="display: none;" />
       <video id="camera" width="100%" autoplay playsinline></video>
-      <button id="captureBtn">Capture Image</button>
+      <button id="camBtn" aria-label="take photo">Take photo 📸 </button>
+      <button id="imgBtn" aria-label="insert photo">Insert photo 🖼️ </button>
       <canvas id="snapshot" style="display:none;"></canvas>
 
     <!-- FAKE NEWS -->
@@ -525,7 +524,7 @@
     //vdo detection wip
 const video = document.getElementById('camera');
 const canvas = document.getElementById('snapshot');
-const camBtn = document.getElementById('captureBtn');
+const camBtn = document.getElementById('camBtn');
 
 // Request camera stream
 navigator.mediaDevices.getUserMedia({ video: true })
