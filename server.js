@@ -32,7 +32,7 @@ app.post('/detect', async (req, res) => {
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
+          Authorization: `Bearer ${process.env.AI_OR_NOT_TOKEN}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ inputs: text }),
