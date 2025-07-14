@@ -13,8 +13,11 @@ app.use(express.json());
 
 // Add the logging middleware here, before routes:
 app.use((req, res, next) => {
-  console.log('Incoming request:', req.method, req.url);
+  console.log('--- Incoming Request ---');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
   console.log('Headers:', req.headers);
+  console.log('Body:', req.body);
   next();
 });
 
