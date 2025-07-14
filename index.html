@@ -485,23 +485,28 @@
       reasoning.textContent = '';
     });
 
-    function showResult(text, cls, icon) {
-      resultText.textContent = text;
-      result.className = 'result ' + cls;
-      resultIcon.textContent = icon;
-      result.style.display = 'flex';
-      copyBtn.disabled = false;
+   function showResult(text, cls, icon = '❓') {
+  resultText.textContent = text;
+  result.className = 'result ' + cls;
+  resultIcon.textContent = icon;
+  result.style.display = 'flex';
+  copyBtn.disabled = false;
 
-      confidenceWrapper.style.display = 'block';
-      const input = inputText.value.trim().toLowerCase();
-      const aiMatches = aiKeywords.filter(kw => new RegExp(`\\b${kw}\\b`, 'i').test(input)).length;
-      const humanMatches = humanKeywords.filter(kw => new RegExp(`\\b${kw}\\b`, 'i').test(input)).length;
-      const total = aiMatches + humanMatches;
-      let confidence = 0;
+  confidenceWrapper.style.display = 'block';
+  const input = inputText.value.trim().toLowerCase();
+  const aiMatches = aiKeywords.filter(kw => new RegExp(`\\b${kw}\\b`, 'i').test(input)).length;
+  const humanMatches = humanKeywords.filter(kw => new RegExp(`\\b${kw}\\b`, 'i').test(input)).length;
+  const total = aiMatches + humanMatches;
+  let confidence = 0;
 
-      if (cls === 'ai') {
-        confidence = total ? Math.round((aiMatches / total) * 100) : 90;
-      }
+  if (cls === 'ai') {
+    confidence = total ? Math.round((aiMatches / total) * 100) : 90;
+  } else if (cls === 'human') {
+    confidence = total ? Math.round((humanMatches / total) * 100) : 90;
+  }
+  
+  confidenceBar.style.width = `${confidence}%`;
+  confidenceBar.textContent = `${confidence}%`;
+}
 
-    }
   </script>
