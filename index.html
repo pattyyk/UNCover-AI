@@ -224,12 +224,7 @@
       border-radius: 20px;
     }
 
-    #reasoning {
-      color: white;
-      font-size: 0.9rem;
-      text-align: center;
-      margin-top: -10px;
-    }
+  
 
     /* Responsive */
     @media (max-width: 480px) {
@@ -290,8 +285,7 @@
         <span id="resultText"></span>
       </div>
 
-      <div id="reasoning"></div>
-
+     
       <div id="confidenceWrapper" title="Confidence is based on how many AI vs Human keywords were matched." style="display:none;">
         <label>Confidence Level</label>
         <div style="background: #ddd; border-radius: 20px; overflow: hidden;">
@@ -307,10 +301,13 @@
       Insert or take images to detect AI
       </p>  
       <input type="file" id="imageUpload" accept="image/*" style="display: none;" />
-      <video id="camera" width="80%" autoplay playsinline></video>
-      <button id="camBtn" aria-label="take photo">Take photo 📸 </button>
+       <button id="camBtn" aria-label="take photo">Take photo 📷 </button>
       <button id="imgBtn" aria-label="insert photo">Insert photo 🖼️ </button>
+      <video id="camera" width="80%" autoplay playsinline></video>
+      <img id="imagePreview" style="max-width: 80%; display:none; border-radius: 12px; margin-top: 12px;" alt="Uploaded image preview" />
       <canvas id="snapshot" style="display:none;"></canvas>
+      <button id="capBtn" aria-label="insert photo">Capture photo 📸 </button>
+       <button id="typeBtn" aria-label="insert photo">Detect photo type 🔍</button>
 
     <!-- FAKE NEWS -->
     <section id="fakeNews" class="section" role="tabpanel" aria-labelledby="linkFakeNews" tabindex="0" hidden>
@@ -332,7 +329,7 @@
         <span id="fakeNewsResultText"></span>
       </div>
 
-      <div id="fakeNewsReasoning"></div>
+  
     </section>
 
     <!-- ABOUT -->
@@ -396,10 +393,8 @@
     const resultText = document.getElementById('resultText');
     const confidenceBar = document.getElementById('confidenceBar');
     const confidenceWrapper = document.getElementById('confidenceWrapper');
-    const reasoning = document.getElementById('reasoning');
 
-    const humanKeywords = ['hi', 'my', 'name', 'hello', 'thanks', 'please', 'yeah', 'okay', 'sure'];
-    const aiKeywords = ['ai', 'artificial intelligence', 'machine learning', 'language model', 'openai', 'chatgpt', 'gpt'];
+
 
     let resetTimeout;
 
@@ -411,7 +406,7 @@
       result.style.display = 'none';
       copyBtn.disabled = true;
       confidenceWrapper.style.display = 'none';
-      reasoning.textContent = '';
+
     });
 
    
@@ -495,7 +490,7 @@
       result.style.display = 'none';
       confidenceWrapper.style.display = 'none';
       copyBtn.disabled = true;
-      reasoning.textContent = '';
+     
     });
 
    function showResult(text, cls, icon = '❓') {
@@ -507,9 +502,6 @@
 
   confidenceWrapper.style.display = 'block';
   const input = inputText.value.trim().toLowerCase();
-  const aiMatches = aiKeywords.filter(kw => new RegExp(`\\b${kw}\\b`, 'i').test(input)).length;
-  const humanMatches = humanKeywords.filter(kw => new RegExp(`\\b${kw}\\b`, 'i').test(input)).length;
-  const total = aiMatches + humanMatches;
   let confidence = 0;
 
   if (cls === 'ai') {
@@ -522,50 +514,125 @@
   confidenceBar.textContent = `${confidence}%`;
 }
     //vdo detection wip
-const video = document.getElementById('camera');
-const canvas = document.getElementById('snapshot');
 const camBtn = document.getElementById('camBtn');
-
-// Request camera stream
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then((stream) => {
-    video.srcObject = stream;
-  })
-  .catch((err) => {
-    console.error('Camera access denied:', err);
-    alert('Unable to access camera.');
-  });
-
-// Capture image from video
-camBtn.addEventListener('click', () => {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  const imageData = canvas.toDataURL('image/jpeg');
-
-  // Send to your backend or Clarifai
-  detectImage(imageData);
-});
-async function detectImage(base64Image) {
-  try {
-    const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64Image })
-    });
-
-    const result = await response.json();
-    console.log('Detection Result:', result);
-    // update UI with result...
-  } catch (err) {
-    console.error('Detection failed:', err);
-  }
-}
-    // uploading image feature
+const capBtn = document.getElementById('capBtn');
 const imgBtn = document.getElementById('imgBtn');
 const imageUpload = document.getElementById('imageUpload');
+const camera = document.getElementById('camera');
+const imagePreview = document.getElementById('imagePreview');
+const canvas = document.getElementById('snapshot');
+let stream = null;
+
+// Show camera and capture button when clicking "Take photo"
+camBtn.addEventListener('click', async () => {
+  imagePreview.style.display = 'none';
+  capBtn.style.display = 'inline-block';
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    camera.srcObject = stream;
+    camera.style.display = 'block';
+  } catch (err) {
+    alert('Cannot access camera');
+    console.error(err);
+  }
+});
+
+// Take snapshot when clicking "Capture Image"
+capBtn.addEventListener('click', () => {
+  canvas.width = camera.videoWidth;
+  canvas.height = camera.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
+  
+  const imageData = canvas.toDataURL('image/jpeg');
+  imagePreview.src = imageData;
+  imagePreview.style.display = 'block';
+
+  // Hide video and capture button and stop the camera
+  camera.style.display = 'none';
+  capBtn.style.display = 'none';
+
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+  
+  // Here you can call your detectImage(imageData) or other processing function
+});
+
+// Insert photo button logic (same as before)
+imgBtn.addEventListener('click', () => {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+    camera.style.display = 'none';
+  }
+  capBtn.style.display = 'none';
+  imagePreview.style.display = 'none';
+  imageUpload.click();
+});
+
+// Preview uploaded image
+imageUpload.addEventListener('change', () => {
+  const file = imageUpload.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      imagePreview.src = e.target.result;
+      imagePreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+    camera.style.display = 'none';
+    capBtn.style.display = 'none';
+  }
+});
+
+const typeBtn = document.getElementById('typeBtn');
+let currentImageData = null; // Store Base64 image here
+
+// After taking photo (camera)
+capBtn.addEventListener('click', () => {
+  canvas.width = camera.videoWidth;
+  canvas.height = camera.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
+
+  currentImageData = canvas.toDataURL('image/jpeg'); // Store image
+  imagePreview.src = currentImageData;
+  imagePreview.style.display = 'block';
+
+  camera.style.display = 'none';
+  capBtn.style.display = 'none';
+
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+
+  typeBtn.disabled = false; // Enable type detection
+});
+
+// After uploading image
+imageUpload.addEventListener('change', () => {
+  const file = imageUpload.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      currentImageData = e.target.result; // Store image
+      imagePreview.src = currentImageData;
+      imagePreview.style.display = 'block';
+      typeBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+
 
 imgBtn.addEventListener('click', () => {
   imageUpload.click(); // Simulates clicking the file input
