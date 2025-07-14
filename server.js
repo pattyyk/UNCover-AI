@@ -72,3 +72,5 @@ app.listen(port, () => {
   console.log('PORT:', port);
   console.log('AI_OR_NOT_TOKEN present:', !!process.env.AI_OR_NOT_TOKEN);
 });
+console.log('PORT:', process.env.PORT);
+console.log('ROUTE_PATH:', process.env.ROUTE_PATH);
