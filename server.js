@@ -92,6 +92,77 @@ if (label === 'ai') {
   }
 });  // <-- this was missing
 
+//image detection
+app.get('/copyleaks-token', async (req, res) => {
+  try {
+    const { COPYLEAKS_EMAIL, COPYLEAKS_API_KEY } = process.env;
+
+    const authRes = await fetch('https://id.copyleaks.com/v3/account/login/api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: COPYLEAKS_EMAIL,
+        key: COPYLEAKS_API_KEY
+      })
+    });
+
+    if (!authRes.ok) {
+      const error = await authRes.text();
+      return res.status(401).json({ error });
+    }
+
+    const data = await authRes.json();
+    res.json({ access_token: data.access_token });
+
+  } catch (err) {
+    console.error('Token fetch error:', err);
+    res.status(500).json({ error: 'Failed to get Copyleaks token' });
+  }
+});
+
+// === 2. IMAGE DETECTION VIA COPYLEAKS ===
+app.post('/image-detect', async (req, res) => {
+  try {
+    const { image } = req.body;
+    if (!image) return res.status(400).json({ error: 'Missing image' });
+
+    // Step 1: Get token
+    const authRes = await fetch('https://id.copyleaks.com/v3/account/login/api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: process.env.COPYLEAKS_EMAIL,
+        key: process.env.COPYLEAKS_API_KEY
+      })
+    });
+
+    const authData = await authRes.json();
+    const token = authData.access_token;
+
+    // Step 2: Send image to Copyleaks
+    const apiRes = await fetch('https://api.copyleaks.com/v1/ai-content-detector/image/base64', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ base64: image.split(',')[1] }) // remove data:image/jpeg;base64,
+    });
+
+    const result = await apiRes.json();
+    res.json(result);
+
+  } catch (err) {
+    console.error('Image detection error:', err);
+    res.status(500).json({ error: 'Image detection failed' });
+  }
+});
+
+// === START SERVER ===
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 console.log('Starting server...');
 console.log('PORT:', port);
 console.log('HUGGINGFACE_API_TOKEN:', !!process.env.HUGGINGFACE_API_TOKEN);
