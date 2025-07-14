@@ -700,4 +700,16 @@ typeBtn.addEventListener('click', async () => {
   typeBtn.disabled = false;
   typeBtn.textContent = 'Detect Image Type';
 });
+    fetch('/image-detect', { /*...*/ })
+  .then(res => res.json())
+  .then(data => {
+    const label = data.ai ? 'ai' : 'human';
+    const icon = label === 'ai' ? '🤖' : '👤';
+    const confidence = data.confidence || 0;
+
+    // Update UI
+    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
+    resultIcon.textContent = icon;
+    // apply classes etc.
+  });
   </script>
