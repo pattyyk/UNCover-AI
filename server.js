@@ -11,6 +11,13 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Add the logging middleware here, before routes:
+app.use((req, res, next) => {
+  console.log('Incoming request:', req.method, req.url);
+  console.log('Headers:', req.headers);
+  next();
+});
+
 app.get('/', (req, res) => res.send('Hello World!'));
 
 app.post('/detect', async (req, res) => {
@@ -25,7 +32,7 @@ app.post('/detect', async (req, res) => {
         Authorization: `Bearer ${process.env.AI_OR_NOT_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text }) // Make sure body is inside try block!
+      body: JSON.stringify({ text })
     });
 
     if (!response.ok) {
@@ -54,7 +61,6 @@ app.post('/detect', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
