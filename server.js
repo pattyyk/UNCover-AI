@@ -23,12 +23,10 @@ app.post('/detect', async (req, res) => {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.AI_OR_NOT_TOKEN}`,
-        'Content-Type': 'application/json', // ... your existing code
-  } catch (error) {
-    // ...
-  }
-});
-
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text }) // Make sure body is inside try block!
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -50,11 +48,13 @@ app.post('/detect', async (req, res) => {
     else if (label === 'human') icon = '👤';
 
     res.json({ label, confidence, icon });
+
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
