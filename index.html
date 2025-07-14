@@ -341,6 +341,15 @@ const result = document.getElementById('result');
 const resultText = document.getElementById('resultText');
 const resultIcon = document.getElementById('resultIcon');
 const input = document.getElementById('inputText');
+const wordCount = document.getElementById('wordCount');
+const charCount = document.getElementById('charCount');
+
+input.addEventListener('input', () => {
+  const text = input.value.trim();
+  const words = text === '' ? 0 : text.split(/\s+/).length;
+  wordCount.textContent = words;
+  charCount.textContent = input.value.length;
+});
 
 
 
