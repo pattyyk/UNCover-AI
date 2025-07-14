@@ -1,70 +1,97 @@
 import express from 'express';
+import fetch from 'node-fetch';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import fetch from 'node-fetch';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-
-app.use(cors());
-app.use(express.json());
-
-// Add the logging middleware here, before routes:
-app.use((req, res, next) => {
-  console.log('--- Incoming Request ---');
-  console.log('Method:', req.method);
-  console.log('URL:', req.url);
-  console.log('Headers:', req.headers);
-  console.log('Body:', req.body);
-  next();
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
 
-app.get('/', (req, res) => res.send('Hello World!'));
+// ✅ Use CORS config before routes
+app.use(cors({
+  origin: 'https://pattyyk.github.io',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json());
+
+
 
 app.post('/detect', async (req, res) => {
-  console.log('Request body:', req.body);
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'No text provided' });
 
   try {
-    const response = await fetch('https://api.aiornot.com/v2/text/sync', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.AI_OR_NOT_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ text })
-    });
+    const response = await fetch(
+      'https://api-inference.huggingface.co/models/openai-community/roberta-base-openai-detector',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inputs: text }),
+      }
+    );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI or Not API error:', errorText);
-      return res.status(response.status).json({ error: errorText });
+      const error = await response.text();
+      console.error('HuggingFace API error:', error);
+      return res.status(response.status).json({ error });
     }
 
     const data = await response.json();
+    console.log('🧪 Hugging Face raw response:\n', JSON.stringify(data, null, 2));
 
-    if (typeof data.is_ai !== 'boolean' || typeof data.confidence !== 'number') {
-      return res.status(500).json({ error: 'Unexpected API response structure' });
+    // Extract inner predictions array (nested array case)
+    const predictions = Array.isArray(data[0]) ? data[0] : data;
+
+    if (!Array.isArray(predictions) || predictions.length === 0) {
+      return res.status(500).json({ error: 'No predictions returned by the model.' });
     }
 
-    const label = data.is_ai ? 'ai' : 'human';
-    const confidence = Math.round(data.confidence);
+    const topPrediction = predictions[0];
 
-    let icon = '❓';
-    if (label === 'ai') icon = '🤖';
-    else if (label === 'human') icon = '👤';
+    if (!topPrediction.label || typeof topPrediction.score !== 'number') {
+      return res.status(500).json({ error: 'Missing label or score in HF API response' });
+    }
 
+const rawLabel = topPrediction.label.toLowerCase();
+const confidence = Math.round(topPrediction.score * 100);
+
+// Map raw label to friendly label for frontend: human = real, ai = fake
+let label;
+if (rawLabel === 'label_0' || rawLabel.includes('real')) {
+  label = 'human';
+} else if (rawLabel === 'label_1' || rawLabel.includes('fake')) {
+  label = 'ai';
+} else {
+  console.warn('⚠️ Unknown label format from HF:', rawLabel);
+  label = `unknown (${rawLabel})`;
+}
+let icon;
+if (label === 'ai') {
+  icon = '🤖';
+} else if (label === 'human') {
+  icon = '👤';
+} else {
+  icon = '❓';
+}
+    // ... your existing code inside try ...
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.json({ label, confidence, icon });
 
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
-});
+});  // <-- this was missing
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+console.log('Starting server...');
+console.log('PORT:', port);
+console.log('HUGGINGFACE_API_TOKEN:', !!process.env.HUGGINGFACE_API_TOKEN);
