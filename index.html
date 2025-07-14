@@ -698,8 +698,7 @@ typeBtn.addEventListener('click', async () => {
   }
 
   typeBtn.disabled = false;
-  typeBtn.textContent = 'Detect Image Type';
-});
+  typeBtn.textContent = 'Detect Image Type'
     fetch('/image-detect', { /*...*/ })
   .then(res => res.json())
   .then(data => {
