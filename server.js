@@ -158,10 +158,6 @@ app.post('/image-detect', async (req, res) => {
   }
 });
 
-// === START SERVER ===
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
 
 console.log('Starting server...');
 console.log('PORT:', port);
