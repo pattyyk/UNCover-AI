@@ -14,6 +14,7 @@ app.use(express.json());
 app.get('/', (req, res) => res.send('Hello World!'));
 
 app.post('/detect', async (req, res) => {
+  console.log('Request body:', req.body);
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'No text provided' });
 
@@ -22,10 +23,12 @@ app.post('/detect', async (req, res) => {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.AI_OR_NOT_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ text }),
-    });
+        'Content-Type': 'application/json', // ... your existing code
+  } catch (error) {
+    // ...
+  }
+});
+
 
     if (!response.ok) {
       const errorText = await response.text();
