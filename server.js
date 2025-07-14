@@ -8,53 +8,48 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// ✅ Middleware
 app.use(cors({
   origin: 'https://pattyyk.github.io',
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
 
-// ✅ Start server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-  console.log('AI_OR_NOT_TOKEN:', !!process.env.AI_OR_NOT_TOKEN);
-});
+app.use(express.json());
 
 app.post('/detect', async (req, res) => {
   const { text } = req.body;
-
-  if (!text) {
-    return res.status(400).json({ error: 'No text provided' });
-  }
+  if (!text) return res.status(400).json({ error: 'No text provided' });
 
   try {
-    const response = await fetch(
-  'https://api.aiornot.com/v2/text/sync',
-  {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.AI_OR_NOT_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ text }),  // ✅ Correct key name
-  }
-);
+    const response = await fetch('https://api.aiornot.com/v2/text/sync', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.AI_OR_NOT_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text }) // 👈 REQUIRED key is "text", not "inputs"
+    });
 
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('AI or Not API error:', error);
+      return res.status(response.status).json({ error });
+    }
 
     const data = await response.json();
     console.log('🧪 AI or Not response:\n', JSON.stringify(data, null, 2));
 
-    // ✅ Validate expected fields
-    if (!data.hasOwnProperty('ai') || typeof data.ai !== 'boolean' || typeof data.confidence !== 'number') {
+    // ✅ Validate and extract fields
+    if (typeof data.is_ai !== 'boolean' || typeof data.confidence !== 'number') {
       return res.status(500).json({ error: 'Unexpected API response structure' });
     }
 
-    // ✅ Map values
-    const label = data.ai ? 'ai' : 'human';
-    const confidence = Math.round(data.confidence * 100);
-    const icon = label === 'ai' ? '🤖' : '👤';
+    const label = data.is_ai ? 'ai' : 'human';
+    const confidence = Math.round(data.confidence);
+
+    let icon = '❓';
+    if (label === 'ai') icon = '🤖';
+    else if (label === 'human') icon = '👤';
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.json({ label, confidence, icon });
@@ -63,4 +58,11 @@ app.post('/detect', async (req, res) => {
     console.error('Server error:', error);
     return res.status(500).json({ error: error.message });
   }
+});
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+  console.log('Starting server...');
+  console.log('PORT:', port);
+  console.log('AI_OR_NOT_TOKEN present:', !!process.env.AI_OR_NOT_TOKEN);
 });
