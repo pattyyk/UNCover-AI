@@ -631,6 +631,7 @@ imageUpload.addEventListener('change', () => {
       imagePreview.src = currentImageData;
       imagePreview.style.display = 'block';
       typeBtn.disabled = false;
+      snapshot.style.display = 'none';
     };
     reader.readAsDataURL(file);
   }
