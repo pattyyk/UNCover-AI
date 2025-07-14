@@ -28,7 +28,7 @@ app.post('/detect', async (req, res) => {
 
   try {
     const response = await fetch(
-      'https://api-inference.huggingface.co/models/openai-community/roberta-base-openai-detector',
+            'https://api.aiornot.com/v2/text/sync',
       {
         method: 'POST',
         headers: {
