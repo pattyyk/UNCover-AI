@@ -546,12 +546,13 @@ capBtn.addEventListener('click', () => {
   ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
   
   const imageData = canvas.toDataURL('image/jpeg');
-  imagePreview.src = imageData;
+ snapshot.src = imageData;
   imagePreview.style.display = 'block';
 
   // Hide video and capture button and stop the camera
   camera.style.display = 'none';
   capBtn.style.display = 'none';
+  snapshot.style.display = 'block';
   typeBtn.style.display = 'inline-block';
 
   if (stream) {
@@ -606,8 +607,8 @@ capBtn.addEventListener('click', () => {
   ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
 
   currentImageData = canvas.toDataURL('image/jpeg'); // Store image
-  imagePreview.src = currentImageData;
-  imagePreview.style.display = 'block';
+  snapshot.src = currentImageData;
+  snapshot.style.display = 'block';
 
   camera.style.display = 'none';
   capBtn.style.display = 'none';
