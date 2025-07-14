@@ -67,9 +67,9 @@ const confidence = Math.round(topPrediction.score * 100);
 // Map raw label to friendly label for frontend: human = real, ai = fake
 let label;
 if (rawLabel === 'label_0' || rawLabel.includes('real')) {
-  label = 'human';
-} else if (rawLabel === 'label_1' || rawLabel.includes('fake')) {
   label = 'ai';
+} else if (rawLabel === 'label_1' || rawLabel.includes('fake')) {
+  label = 'human';
 } else {
   console.warn('⚠️ Unknown label format from HF:', rawLabel);
   label = `unknown (${rawLabel})`;
