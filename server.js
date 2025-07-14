@@ -8,11 +8,18 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors({
+// CORS configuration
+const corsOptions = {
   origin: 'https://pattyyk.github.io',
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'OPTIONS'],  // Include OPTIONS for preflight
   allowedHeaders: ['Content-Type', 'Authorization']
-}));
+};
+
+// Use CORS middleware globally
+app.use(cors(corsOptions));
+
+// Handle OPTIONS preflight requests explicitly (optional but recommended)
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 
@@ -27,7 +34,7 @@ app.post('/detect', async (req, res) => {
         Authorization: `Bearer ${process.env.AI_OR_NOT_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text }) // 👈 REQUIRED key is "text", not "inputs"
+      body: JSON.stringify({ text }) // REQUIRED key is "text"
     });
 
     if (!response.ok) {
@@ -39,7 +46,6 @@ app.post('/detect', async (req, res) => {
     const data = await response.json();
     console.log('🧪 AI or Not response:\n', JSON.stringify(data, null, 2));
 
-    // ✅ Validate and extract fields
     if (typeof data.is_ai !== 'boolean' || typeof data.confidence !== 'number') {
       return res.status(500).json({ error: 'Unexpected API response structure' });
     }
