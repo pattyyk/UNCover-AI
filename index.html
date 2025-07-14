@@ -335,166 +335,45 @@
 
   </main>
 
-  <script>
-    // NAVIGATION LOGIC USING HASH
-    function handleHashChange() {
-      const hash = window.location.hash || '#detector'; // default tab is detector
-      const sections = document.querySelectorAll('.section');
-      const links = document.querySelectorAll('nav a');
-
-      sections.forEach(section => {
-        if ('#' + section.id === hash) {
-          section.classList.add('active');
-          section.removeAttribute('hidden');
-          section.setAttribute('tabindex', '0');
-        } else {
-          section.classList.remove('active');
-          section.setAttribute('hidden', '');
-          section.setAttribute('tabindex', '-1');
-        }
-      });
-
-      links.forEach(link => {
-        if (link.getAttribute('href') === hash) {
-          link.classList.add('active');
-          link.setAttribute('aria-selected', 'true');
-          link.setAttribute('tabindex', '0');
-        } else {
-          link.classList.remove('active');
-          link.setAttribute('aria-selected', 'false');
-          link.setAttribute('tabindex', '-1');
-        }
-      });
-    }
-
-    window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('load', handleHashChange);
-
-    // === Detector Tab Logic ===
-
-    const inputText = document.getElementById('inputText');
-    const wordCount = document.getElementById('wordCount');
-    const charCount = document.getElementById('charCount');
-    const detectBtn = document.getElementById('detectBtn');
-    const copyBtn = document.getElementById('copyBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const result = document.getElementById('result');
-    const resultIcon = document.getElementById('resultIcon');
-    const resultText = document.getElementById('resultText');
-    const confidenceBar = document.getElementById('confidenceBar');
-    const confidenceWrapper = document.getElementById('confidenceWrapper');
-    const reasoning = document.getElementById('reasoning');
-
-    const humanKeywords = ['hi', 'my', 'name', 'hello', 'thanks', 'please', 'yeah', 'okay', 'sure'];
-    const aiKeywords = ['ai', 'artificial intelligence', 'machine learning', 'language model', 'openai', 'chatgpt', 'gpt'];
-
-    let resetTimeout;
-
-    inputText.addEventListener('input', () => {
-      const text = inputText.value.trim();
-      const words = text === '' ? 0 : text.split(/\s+/).length;
-      wordCount.textContent = words;
-      charCount.textContent = text.length;
-      result.style.display = 'none';
-      copyBtn.disabled = true;
-      confidenceWrapper.style.display = 'none';
-      reasoning.textContent = '';
-    });
-
-   
+<script>
+  const detectBtn = document.getElementById('detectBtn');
+  const result = document.getElementById('result');
+  const resultText = document.getElementById('resultText');
+  const resultIcon = document.getElementById('resultIcon');
+  const input = document.getElementById('input');
 
   detectBtn.addEventListener('click', async () => {
-  const inputValue = inputText.value.trim();
-  if (!inputValue) {
-    alert('Please enter some text to detect!');
-    return;
-  }
+    const inputValue = input.value.trim();
+    if (!inputValue) return alert('Please enter some text to detect.');
 
-  detectBtn.disabled = true;
-  detectBtn.textContent = 'Detecting...';
+    try {
+      const response = await fetch('https://uncover-ai.onrender.com/detect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: inputValue })  // ✅ Must be "text"
+      });
 
-  try {
-    const response = await fetch('https://uncover-ai.onrender.com/detect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: inputValue })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Detection failed');
-    }
-
-    const data = await response.json();
-    console.log('Backend response:', data); // ✅ log here
-
-    const label = data.label || 'unknown'; // ✅ safe fallback
-    const confidence = isNaN(data.confidence) ? 0 : data.confidence; // ✅ safe fallback
-
-    result.style.display = 'flex';
-    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
-
-    result.className = `result ${label === 'human' ? 'human' : label === 'ai' ? 'ai' : ''}`;
-    resultIcon.textContent = data.icon || "❓";
-
-
-
-    confidenceBar.style.width = `${confidence}%`;
-    confidenceBar.textContent = `${confidence}%`;
-    confidenceWrapper.style.display = 'block';
-    copyBtn.disabled = false;
-
-  } catch (error) {
-    console.error('Error:', error);
-    alert(error.message);
-  }
-
-  detectBtn.disabled = false;
-  detectBtn.textContent = 'Detect Text Type 🔍';
-});
-
-
-
-
-
-
-    copyBtn.addEventListener('click', () => {
-      const txt = resultText.textContent;
-      if (txt) {
-        navigator.clipboard.writeText(txt).then(() => {
-          copyBtn.textContent = 'Copied ✔️';
-          setTimeout(() => copyBtn.textContent = 'Copy Result 📋', 1500);
-        });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Detection failed');
       }
-    });
 
-    clearBtn.addEventListener('click', () => {
-      inputText.value = '';
-      wordCount.textContent = '0';
-      charCount.textContent = '0';
-      result.style.display = 'none';
-      confidenceWrapper.style.display = 'none';
-      copyBtn.disabled = true;
-      reasoning.textContent = '';
-    });
+      const data = await response.json();
+      console.log('Backend response:', data);  // ✅ optional debug
 
-    function showResult(text, cls, icon) {
-      resultText.textContent = text;
-      result.className = 'result ' + cls;
-      resultIcon.textContent = response.icon;
+      const label = data.label || 'unknown';
+      const confidence = isNaN(data.confidence) ? 0 : data.confidence;
+      const icon = data.icon || '❓';
+
       result.style.display = 'flex';
-      copyBtn.disabled = false;
+      resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
+      resultIcon.textContent = icon;
 
-      confidenceWrapper.style.display = 'block';
-      const input = inputText.value.trim().toLowerCase();
-      const aiMatches = aiKeywords.filter(kw => new RegExp(`\\b${kw}\\b`, 'i').test(input)).length;
-      const humanMatches = humanKeywords.filter(kw => new RegExp(`\\b${kw}\\b`, 'i').test(input)).length;
-      const total = aiMatches + humanMatches;
-      let confidence = 0;
-
-      if (cls === 'ai') {
-        confidence = total ? Math.round((aiMatches / total) * 100) : 90;
-      }
-
+      // Optional: color styles
+      result.className = 'result ' + (label === 'ai' ? 'ai' : label === 'human' ? 'human' : '');
+    } catch (error) {
+      console.error(error);
+      alert(`Error: ${error.message}`);
     }
-  </script>
+  });
+</script>
