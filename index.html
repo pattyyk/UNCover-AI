@@ -642,4 +642,62 @@ imageUpload.addEventListener('change', () => {
 imgBtn.addEventListener('click', () => {
   imageUpload.click(); // Simulates clicking the file input
 });
+
+
+const snapshotCanvas = document.getElementById('snapshot');
+const confidenceWrapper = document.getElementById('confidenceWrapper');
+const confidenceBar = document.getElementById('confidenceBar');
+const result = document.getElementById('result');
+const resultText = document.getElementById('resultText');
+const resultIcon = document.getElementById('resultIcon');
+
+typeBtn.addEventListener('click', async () => {
+  if (!imageData) {
+    alert('No image captured or uploaded!');
+    return;
+  }
+
+  typeBtn.disabled = true;
+  typeBtn.textContent = 'Detecting...';
+
+  try {
+    const response = await fetch('https://uncover-ai.onrender.com/image-type', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: imageData })
+    });
+
+    const data = await response.json();
+    console.log('Copyleaks Result:', data);
+
+    const label = data.label || 'unknown';
+    const confidence = isNaN(data.confidence) ? 0 : data.confidence;
+    const icon = label === 'ai' ? '🤖' : label === 'human' ? '👤' : '❓';
+
+    // Show result
+    result.style.display = 'flex';
+    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
+    resultIcon.textContent = icon;
+
+    if (label === 'ai') {
+      result.className = 'result ai';
+    } else if (label === 'human') {
+      result.className = 'result human';
+    } else {
+      result.className = 'result';
+    }
+
+    // Show confidence bar
+    confidenceWrapper.style.display = 'block';
+    confidenceBar.style.width = `${confidence}%`;
+    confidenceBar.textContent = `${confidence}%`;
+
+  } catch (error) {
+    console.error('Error detecting image type:', error);
+    alert('Failed to detect image type.');
+  }
+
+  typeBtn.disabled = false;
+  typeBtn.textContent = 'Detect Image Type';
+});
   </script>
