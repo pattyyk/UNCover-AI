@@ -307,7 +307,7 @@
       <img id="imagePreview" style="max-width: 80%; display:none; border-radius: 12px; margin-top: 12px;" alt="Uploaded image preview" />
       <canvas id="snapshot" style="display:none;"></canvas>
       <button id="capBtn" aria-label="insert photo">Capture photo 📸 </button>
-       <button id="typeBtn" aria-label="insert photo">Detect photo type 🔍</button>
+       <button id="typeBtn" style="display:none;" aria-label="insert photo">Detect photo type 🔍</button>
 
     <!-- FAKE NEWS -->
     <section id="fakeNews" class="section" role="tabpanel" aria-labelledby="linkFakeNews" tabindex="0" hidden>
@@ -521,6 +521,7 @@ const imageUpload = document.getElementById('imageUpload');
 const camera = document.getElementById('camera');
 const imagePreview = document.getElementById('imagePreview');
 const canvas = document.getElementById('snapshot');
+const typeBtn = document.getElementById('typeBtn');
 let stream = null;
 
 // Show camera and capture button when clicking "Take photo"
@@ -551,6 +552,8 @@ capBtn.addEventListener('click', () => {
   // Hide video and capture button and stop the camera
   camera.style.display = 'none';
   capBtn.style.display = 'none';
+  const imageData = canvas.toDataURL('image/jpeg');
+  typeBtn.style.display = 'inline-block';
 
   if (stream) {
     stream.getTracks().forEach(track => track.stop());
@@ -580,6 +583,7 @@ imageUpload.addEventListener('change', () => {
     reader.onload = e => {
       imagePreview.src = e.target.result;
       imagePreview.style.display = 'block';
+      typeBtn.style.display = 'inline-block';
     };
     reader.readAsDataURL(file);
 
@@ -592,7 +596,7 @@ imageUpload.addEventListener('change', () => {
   }
 });
 
-const typeBtn = document.getElementById('typeBtn');
+
 let currentImageData = null; // Store Base64 image here
 
 // After taking photo (camera)
