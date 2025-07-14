@@ -30,14 +30,18 @@ app.post('/detect', async (req, res) => {
   }
 
   try {
-    const response = await fetch('https://api.aiornot.com/v2/text/sync', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.AI_OR_NOT_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ input: text })  // 🔁 Correct field is `input` not `inputs`
-    });
+    const response = await fetch(
+  'https://api.aiornot.com/v2/text/sync',
+  {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.AI_OR_NOT_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ text }),  // ✅ Correct key name
+  }
+);
+
 
     const data = await response.json();
     console.log('🧪 AI or Not response:\n', JSON.stringify(data, null, 2));
