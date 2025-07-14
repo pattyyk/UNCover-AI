@@ -430,7 +430,7 @@
 
     const label = data.label || 'unknown'; // now expecting 'ai' or 'human'
     const confidence = isNaN(data.confidence) ? 0 : data.confidence;
-    const icon = data.icon || '❓';
+    console.log('Icon:', icon);
 
     result.style.display = 'flex';
     resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
