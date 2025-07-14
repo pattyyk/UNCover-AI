@@ -337,43 +337,45 @@
 
 <script>
   const detectBtn = document.getElementById('detectBtn');
-  const result = document.getElementById('result');
-  const resultText = document.getElementById('resultText');
-  const resultIcon = document.getElementById('resultIcon');
-  const input = document.getElementById('input');
+const result = document.getElementById('result');
+const resultText = document.getElementById('resultText');
+const resultIcon = document.getElementById('resultIcon');
+const input = document.getElementById('inputText');  // <-- corrected
 
-  detectBtn.addEventListener('click', async () => {
-    const inputValue = input.value.trim();
-    if (!inputValue) return alert('Please enter some text to detect.');
+detectBtn.addEventListener('click', async () => {
+  const inputValue = input.value.trim();
+  if (!inputValue) return alert('Please enter some text to detect.');
 
-    try {
-      const response = await fetch('https://uncover-ai.onrender.com/detect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: inputValue })  // ✅ Must be "text"
-      });
+  try {
+    const response = await fetch('https://uncover-ai.onrender.com/detect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: inputValue })  // Must be "text"
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Detection failed');
-      }
-
-      const data = await response.json();
-      console.log('Backend response:', data);  // ✅ optional debug
-
-      const label = data.label || 'unknown';
-      const confidence = isNaN(data.confidence) ? 0 : data.confidence;
-      const icon = data.icon || '❓';
-
-      result.style.display = 'flex';
-      resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
-      resultIcon.textContent = icon;
-
-      // Optional: color styles
-      result.className = 'result ' + (label === 'ai' ? 'ai' : label === 'human' ? 'human' : '');
-    } catch (error) {
-      console.error(error);
-      alert(`Error: ${error.message}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Detection failed');
     }
-  });
+
+    const data = await response.json();
+    console.log('Backend response:', data);
+
+    const label = data.label || 'unknown';
+    const confidence = isNaN(data.confidence) ? 0 : data.confidence;
+    const icon = data.icon || '❓';
+
+    result.style.display = 'flex';
+    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
+    resultIcon.textContent = icon;
+
+    // Update result styling
+    result.className = 'result ' + (label === 'ai' ? 'ai' : label === 'human' ? 'human' : '');
+
+  } catch (error) {
+    console.error(error);
+    alert(`Error: ${error.message}`);
+  }
+});
+
 </script>
