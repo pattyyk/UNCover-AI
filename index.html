@@ -418,7 +418,21 @@ function resizeImage(base64, maxWidth = 800, maxHeight = 800) {
     const detectBtn = document.getElementById('detectBtn');
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
-    const result = document.getElementById('result');
+  const rawText = await apiRes.text();  // Get the raw response body (even if empty)
+
+if (!rawText) {
+  console.error('❌ Empty response from Copyleaks');
+  return res.status(500).json({ error: 'Empty response from Copyleaks' });
+}
+
+let result;
+try {
+  result = JSON.parse(rawText);  // Try to parse only if not empty
+} catch (err) {
+  console.error('❌ Failed to parse Copyleaks image response:', rawText);
+  return res.status(500).json({ error: 'Invalid JSON from Copyleaks' });
+}
+
     const resultIcon = document.getElementById('resultIcon');
     const resultText = document.getElementById('resultText');
   
@@ -711,6 +725,8 @@ console.log('Resized image:', resizedImage);
   typeBtn.textContent = 'Detect Image Type';
 });
 
-  
+  console.log('📬 Copyleaks status:', apiRes.status);
+console.log('📬 Copyleaks headers:', [...apiRes.headers.entries()]);
+
 
   </script>
