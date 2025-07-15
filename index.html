@@ -651,11 +651,6 @@ const confidenceWrapper = document.getElementById('confidenceWrapper');
 const confidenceBar = document.getElementById('confidenceBar');
 
 
-const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ image: resizedImage })
-});
 
 typeBtn.addEventListener('click', () => {
   if (!currentImageData) {
