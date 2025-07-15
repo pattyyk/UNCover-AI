@@ -120,6 +120,8 @@ app.get('/copyleaks-token', async (req, res) => {
   }
 });
 
+app.use(express.json({ limit: '5mb' }));
+
 // === 2. IMAGE DETECTION VIA COPYLEAKS ===
 app.post('/image-detect', async (req, res) => {
   try {
