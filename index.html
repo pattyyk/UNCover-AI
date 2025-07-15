@@ -652,7 +652,7 @@ const confidenceBar = document.getElementById('confidenceBar');
 
 
 
-typeBtn.addEventListener('click', () => {
+typeBtn.addEventListener('click', async () => {
   if (!currentImageData) {
     alert('No image captured or uploaded!');
     return;
@@ -661,42 +661,40 @@ typeBtn.addEventListener('click', () => {
   typeBtn.disabled = true;
   typeBtn.textContent = 'Detecting...';
 
-  (async () => {
-    try {
-      const resizedImage = await resizeImage(currentImageData);
+  try {
+    const resizedImage = await resizeImage(currentImageData);
 
-      const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: resizedImage })
-      });
+    const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: resizedImage })
+    });
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error('Backend error: ' + text);
-      }
-
-      const data = await response.json();
-      const label = data.label || 'unknown';
-      const confidence = isNaN(data.confidence) ? 0 : data.confidence;
-      const icon = label === 'ai' ? '🤖' : label === 'human' ? '👤' : '❓';
-
-      result.style.display = 'flex';
-      resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
-      resultIcon.textContent = icon;
-      result.className = 'result ' + (label === 'ai' ? 'ai' : label === 'human' ? 'human' : '');
-      confidenceWrapper.style.display = 'block';
-      confidenceBar.style.width = `${confidence}%`;
-      confidenceBar.textContent = `${confidence}%`;
-
-    } catch (err) {
-      console.error('Error detecting image type:', err);
-      alert('Failed to detect image type.');
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error('Backend error: ' + text);
     }
 
-    typeBtn.disabled = false;
-    typeBtn.textContent = 'Detect Image Type';
-  })();
+    const data = await response.json();
+    const label = data.label || 'unknown';
+    const confidence = isNaN(data.confidence) ? 0 : data.confidence;
+    const icon = label === 'ai' ? '🤖' : label === 'human' ? '👤' : '❓';
+
+    result.style.display = 'flex';
+    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
+    resultIcon.textContent = icon;
+    result.className = 'result ' + (label === 'ai' ? 'ai' : label === 'human' ? 'human' : '');
+    confidenceWrapper.style.display = 'block';
+    confidenceBar.style.width = `${confidence}%`;
+    confidenceBar.textContent = `${confidence}%`;
+
+  } catch (err) {
+    console.error('Error detecting image type:', err);
+    alert('Failed to detect image type.');
+  }
+
+  typeBtn.disabled = false;
+  typeBtn.textContent = 'Detect Image Type';
 });
 
   
