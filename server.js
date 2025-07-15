@@ -162,8 +162,34 @@ app.post('/image-detect', async (req, res) => {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ base64: image.split(',')[1] })  // remove data:image/... prefix
-    });
+     // Extract base64 safely
+let imageBase64 = image;
+
+// If it's a data URI, split it properly
+if (typeof image === 'string' && image.startsWith('data:')) {
+  const parts = image.split(',');
+  if (parts.length === 2) {
+    imageBase64 = parts[1];
+  } else {
+    console.error('❌ Malformed base64 image input');
+    return res.status(400).json({ error: 'Malformed image base64 input' });
+  }
+} else if (!image || typeof image !== 'string') {
+  return res.status(400).json({ error: 'Invalid image format' });
+}
+
+console.log('📸 Sending base64 to Copyleaks:', imageBase64.slice(0, 30), '...');
+
+const apiRes = await fetch('https://api.copyleaks.com/v1/ai-content-detector/image/base64', {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ base64: imageBase64 })
+});
+
+
 
     const imageText = await imageRes.text();
     let result;
