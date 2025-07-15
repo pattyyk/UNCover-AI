@@ -182,6 +182,9 @@ app.post('/image-detect', async (req, res) => {
     });
 
     const rawText = await apiRes.text();
+    console.log('📩 Copyleaks raw response:', rawText);
+    console.log('🧾 Copyleaks status:', apiRes.status);
+
     let result;
 
     if (!rawText) {
