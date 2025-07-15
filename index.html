@@ -346,13 +346,37 @@
   </main>
 
   <script>
-    // NAVIGATION LOGIC USING HASH
-    function handleHashChange() {
-      const hash = window.location.hash || '#detector'; // default tab is detector
-      const sections = document.querySelectorAll('.section');
-      const links = document.querySelectorAll('nav a');
+  function handleHashChange() {
+  const hash = window.location.hash || '#detector'; // default tab is detector
+  const sections = document.querySelectorAll('.section');
+  const links = document.querySelectorAll('nav a');
+
+  sections.forEach(section => {
+    if ('#' + section.id === hash) {
+      section.classList.add('active');
+      section.removeAttribute('hidden');
+      section.setAttribute('tabindex', '0');
+    } else {
+      section.classList.remove('active');
+      section.setAttribute('hidden', '');
+      section.setAttribute('tabindex', '-1');
+    }
+  });
+
+  links.forEach(link => {
+    if (link.getAttribute('href') === hash) {
+      link.classList.add('active');
+      link.setAttribute('aria-selected', 'true');
+      link.setAttribute('tabindex', '0');
+    } else {
+      link.classList.remove('active');
+      link.setAttribute('aria-selected', 'false');
+      link.setAttribute('tabindex', '-1');
+    }
+  });
 }
-    //resize pics
+
+//resize pics
 function resizeImage(base64, maxWidth = 800, maxHeight = 800) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -379,30 +403,9 @@ function resizeImage(base64, maxWidth = 800, maxHeight = 800) {
     };
     img.src = base64;
   });
-      sections.forEach(section => {
-        if ('#' + section.id === hash) {
-          section.classList.add('active');
-          section.removeAttribute('hidden');
-          section.setAttribute('tabindex', '0');
-        } else {
-          section.classList.remove('active');
-          section.setAttribute('hidden', '');
-          section.setAttribute('tabindex', '-1');
-        }
-      });
+}
 
-      links.forEach(link => {
-        if (link.getAttribute('href') === hash) {
-          link.classList.add('active');
-          link.setAttribute('aria-selected', 'true');
-          link.setAttribute('tabindex', '0');
-        } else {
-          link.classList.remove('active');
-          link.setAttribute('aria-selected', 'false');
-          link.setAttribute('tabindex', '-1');
-        }
-      });
-    }
+
 
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('load', handleHashChange);
