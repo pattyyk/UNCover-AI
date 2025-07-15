@@ -217,7 +217,6 @@ app.post('/image-detect', async (req, res) => {
 });
 
 
-console.log('🖼 Base64 size:', imageBase64.length);
 
 
 console.log('Starting server...');
