@@ -649,7 +649,7 @@ const confidenceBar = document.getElementById('confidenceBar');
 
 
 typeBtn.addEventListener('click', async () => {
-  if (!imageData) {
+  if (!currentImageData) {
     alert('No image captured or uploaded!');
     return;
   }
@@ -661,7 +661,7 @@ typeBtn.addEventListener('click', async () => {
     const response = await fetch('https://uncover-ai.onrender.com/image-type', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: imageData })
+      body: JSON.stringify({ image: currentImageData })
     });
 
     const data = await response.json();
@@ -671,20 +671,12 @@ typeBtn.addEventListener('click', async () => {
     const confidence = isNaN(data.confidence) ? 0 : data.confidence;
     const icon = label === 'ai' ? '🤖' : label === 'human' ? '👤' : '❓';
 
-    // Show result
     result.style.display = 'flex';
     resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
     resultIcon.textContent = icon;
 
-    if (label === 'ai') {
-      result.className = 'result ai';
-    } else if (label === 'human') {
-      result.className = 'result human';
-    } else {
-      result.className = 'result';
-    }
+    result.className = 'result ' + (label === 'ai' ? 'ai' : label === 'human' ? 'human' : '');
 
-    // Show confidence bar
     confidenceWrapper.style.display = 'block';
     confidenceBar.style.width = `${confidence}%`;
     confidenceBar.textContent = `${confidence}%`;
@@ -695,7 +687,9 @@ typeBtn.addEventListener('click', async () => {
   }
 
   typeBtn.disabled = false;
-  typeBtn.textContent = 'Detect Image Type'
+  typeBtn.textContent = 'Detect Image Type';
+});
+
     fetch('/image-detect', { /*...*/ })
   .then(res => res.json())
   .then(data => {
