@@ -661,7 +661,12 @@ typeBtn.addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: currentImageData })
     });
+    if (!response.ok) {
+    const text = await response.text(); // Try reading it as text
+    throw new Error('Backend error: ' + text);
+    }
 
+const data = await response.json();
     const data = await response.json();
     console.log('Copyleaks Result:', data);
 
