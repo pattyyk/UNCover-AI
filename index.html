@@ -665,6 +665,10 @@ typeBtn.addEventListener('click', async () => {
   typeBtn.disabled = true;
   typeBtn.textContent = 'Detecting...';
 
+  console.log('Current image data (before resize):', currentImageData);
+
+
+
   //check
   if (!currentImageData) {
   console.error('❌ currentImageData is empty or null');
@@ -673,7 +677,7 @@ typeBtn.addEventListener('click', async () => {
 
   try {
     const resizedImage = await resizeImage(currentImageData);
-
+console.log('Resized image:', resizedImage);
     const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
