@@ -155,53 +155,48 @@ app.post('/image-detect', async (req, res) => {
 
     const token = authData.access_token;
 
+    // Extract base64 safely
+    let imageBase64 = image;
+    if (typeof image === 'string' && image.startsWith('data:')) {
+      const parts = image.split(',');
+      if (parts.length === 2) {
+        imageBase64 = parts[1];
+      } else {
+        console.error('❌ Malformed base64 image input');
+        return res.status(400).json({ error: 'Malformed image base64 input' });
+      }
+    } else if (!image || typeof image !== 'string') {
+      return res.status(400).json({ error: 'Invalid image format' });
+    }
+
+    console.log('📸 Sending base64 to Copyleaks:', imageBase64.slice(0, 30), '...');
+
     // Step 2: Send image for detection
-    const imageRes = await fetch('https://api.copyleaks.com/v1/ai-content-detector/image/base64', {
+    const apiRes = await fetch('https://api.copyleaks.com/v1/ai-content-detector/image/base64', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-     // Extract base64 safely
-let imageBase64 = image;
+      body: JSON.stringify({ base64: imageBase64 })
+    });
 
-// If it's a data URI, split it properly
-if (typeof image === 'string' && image.startsWith('data:')) {
-  const parts = image.split(',');
-  if (parts.length === 2) {
-    imageBase64 = parts[1];
-  } else {
-    console.error('❌ Malformed base64 image input');
-    return res.status(400).json({ error: 'Malformed image base64 input' });
-  }
-} else if (!image || typeof image !== 'string') {
-  return res.status(400).json({ error: 'Invalid image format' });
-}
-
-console.log('📸 Sending base64 to Copyleaks:', imageBase64.slice(0, 30), '...');
-
-const apiRes = await fetch('https://api.copyleaks.com/v1/ai-content-detector/image/base64', {
-  method: 'POST',
-  headers: {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ base64: imageBase64 })
-});
-
-
-
-    const imageText = await imageRes.text();
+    const rawText = await apiRes.text();
     let result;
 
+    if (!rawText) {
+      console.error('❌ Empty response from Copyleaks');
+      return res.status(500).json({ error: 'Empty response from Copyleaks' });
+    }
+
     try {
-      result = JSON.parse(imageText);
+      result = JSON.parse(rawText);
     } catch (err) {
-      console.error('❌ Failed to parse Copyleaks image response:', imageText);
+      console.error('❌ Failed to parse Copyleaks image response:', rawText);
       return res.status(500).json({ error: 'Detection JSON parsing error' });
     }
 
-    if (!imageRes.ok || typeof result.ai === 'undefined') {
+    if (!apiRes.ok || typeof result.ai === 'undefined') {
       console.error('❌ Invalid response from Copyleaks:', result);
       return res.status(500).json({ error: 'Invalid response from Copyleaks' });
     }
