@@ -365,7 +365,8 @@ function resizeImage(base64, maxWidth = 800, maxHeight = 800) {
         width = Math.floor(width * scale);
         height = Math.floor(height * scale);
       }
-
+ 
+     
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
@@ -538,7 +539,7 @@ function resizeImage(base64, maxWidth = 800, maxHeight = 800) {
   confidenceBar.textContent = `${confidence}%`;
 }
     //vdo detection wip
-      const resizedImage = await resizeImage(currentImageData);    
+  
 const camBtn = document.getElementById('camBtn');
 const capBtn = document.getElementById('capBtn');
 const imgBtn = document.getElementById('imgBtn');
@@ -679,6 +680,7 @@ const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
 });
 
 typeBtn.addEventListener('click', async () => {
+   const resizedImage = await resizeImage(currentImageData);  
   if (!currentImageData) {
     alert('No image captured or uploaded!');
     return;
