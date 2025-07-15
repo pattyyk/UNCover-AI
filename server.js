@@ -128,7 +128,7 @@ app.post('/image-detect', async (req, res) => {
     const { image } = req.body;
     if (!image) return res.status(400).json({ error: 'Missing image' });
 
-    // Step 1: Get token
+    // Step 1: Authenticate with Copyleaks
     const authRes = await fetch('https://id.copyleaks.com/v3/account/login/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -138,22 +138,45 @@ app.post('/image-detect', async (req, res) => {
       })
     });
 
-    const authData = await authRes.json();
+    const authText = await authRes.text();
+    let authData;
+
+    try {
+      authData = JSON.parse(authText);
+    } catch (err) {
+      console.error('❌ Failed to parse Copyleaks auth response:', authText);
+      return res.status(500).json({ error: 'Auth JSON parsing error' });
+    }
+
+    if (!authRes.ok || !authData.access_token) {
+      console.error('❌ Copyleaks auth failed:', authData);
+      return res.status(401).json({ error: 'Invalid Copyleaks credentials' });
+    }
+
     const token = authData.access_token;
 
-    // Step 2: Send image to Copyleaks
-    const apiRes = await fetch('https://api.copyleaks.com/v1/ai-content-detector/image/base64', {
+    // Step 2: Send image for detection
+    const imageRes = await fetch('https://api.copyleaks.com/v1/ai-content-detector/image/base64', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ base64: image.split(',')[1] })
+      body: JSON.stringify({ base64: image.split(',')[1] })  // remove data:image/... prefix
     });
 
-    const result = await apiRes.json();
+    const imageText = await imageRes.text();
+    let result;
 
-    if (!result || typeof result.ai === 'undefined') {
+    try {
+      result = JSON.parse(imageText);
+    } catch (err) {
+      console.error('❌ Failed to parse Copyleaks image response:', imageText);
+      return res.status(500).json({ error: 'Detection JSON parsing error' });
+    }
+
+    if (!imageRes.ok || typeof result.ai === 'undefined') {
+      console.error('❌ Invalid response from Copyleaks:', result);
       return res.status(500).json({ error: 'Invalid response from Copyleaks' });
     }
 
@@ -164,7 +187,7 @@ app.post('/image-detect', async (req, res) => {
     res.json({ label, confidence, icon });
 
   } catch (err) {
-    console.error('Image detection error:', err);
+    console.error('❌ Image detection error:', err);
     res.status(500).json({ error: 'Image detection failed' });
   }
 });
