@@ -565,66 +565,6 @@ camBtn.addEventListener('click', async () => {
 });
 
 // Take snapshot when clicking "Capture Image"
-capBtn.addEventListener('click', () => {
-  canvas.width = camera.videoWidth;
-  canvas.height = camera.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
-  
-  const imageData = canvas.toDataURL('image/jpeg');
- snapshot.src = imageData;
-  imagePreview.style.display = 'block';
-
-  // Hide video and capture button and stop the camera
-  camera.style.display = 'none';
-  capBtn.style.display = 'none';
-  snapshot.style.display = 'block';
-  typeBtn.style.display = 'inline-block';
-
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-    stream = null;
-  }
-  
-  // Here you can call your detectImage(imageData) or other processing function
-});
-
-// Insert photo button logic (same as before)
-imgBtn.addEventListener('click', () => {
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-    stream = null;
-    camera.style.display = 'none';
-  }
-  capBtn.style.display = 'none';
-  imagePreview.style.display = 'none';
-  imageUpload.click();
-});
-
-// Preview uploaded image
-imageUpload.addEventListener('change', () => {
-  const file = imageUpload.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      imagePreview.src = e.target.result;
-      imagePreview.style.display = 'block';
-      typeBtn.style.display = 'inline-block';
-    };
-    reader.readAsDataURL(file);
-
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      stream = null;
-    }
-    camera.style.display = 'none';
-    capBtn.style.display = 'none';
-  }
-});
-
-
-let currentImageData = null; // Store Base64 image here
-
 // After taking photo (camera)
 capBtn.addEventListener('click', () => {
   canvas.width = camera.videoWidth;
@@ -663,6 +603,44 @@ imageUpload.addEventListener('change', () => {
   }
 });
 
+// Insert photo button logic (same as before)
+imgBtn.addEventListener('click', () => {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+    camera.style.display = 'none';
+  }
+  capBtn.style.display = 'none';
+  imagePreview.style.display = 'none';
+  imageUpload.click();
+});
+
+// Preview uploaded image
+imageUpload.addEventListener('change', () => {
+  const file = imageUpload.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      imagePreview.src = e.target.result;
+      imagePreview.style.display = 'block';
+      typeBtn.style.display = 'inline-block';
+    };
+    reader.readAsDataURL(file);
+
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+    camera.style.display = 'none';
+    capBtn.style.display = 'none';
+  }
+});
+
+
+let currentImageData = null; // Store Base64 image here
+
+
+
 
 
 
@@ -679,8 +657,7 @@ const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
   body: JSON.stringify({ image: resizedImage })
 });
 
-typeBtn.addEventListener('click', async () => {
-   const resizedImage = await resizeImage(currentImageData);  
+typeBtn.addEventListener('click', () => {
   if (!currentImageData) {
     alert('No image captured or uploaded!');
     return;
@@ -689,42 +666,42 @@ typeBtn.addEventListener('click', async () => {
   typeBtn.disabled = true;
   typeBtn.textContent = 'Detecting...';
 
-  try {
-    const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: currentImageData })
-    });
-    if (!response.ok) {
-    const text = await response.text(); // Try reading it as text
-    throw new Error('Backend error: ' + text);
+  (async () => {
+    try {
+      const resizedImage = await resizeImage(currentImageData);
+
+      const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: resizedImage })
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error('Backend error: ' + text);
+      }
+
+      const data = await response.json();
+      const label = data.label || 'unknown';
+      const confidence = isNaN(data.confidence) ? 0 : data.confidence;
+      const icon = label === 'ai' ? '🤖' : label === 'human' ? '👤' : '❓';
+
+      result.style.display = 'flex';
+      resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
+      resultIcon.textContent = icon;
+      result.className = 'result ' + (label === 'ai' ? 'ai' : label === 'human' ? 'human' : '');
+      confidenceWrapper.style.display = 'block';
+      confidenceBar.style.width = `${confidence}%`;
+      confidenceBar.textContent = `${confidence}%`;
+
+    } catch (err) {
+      console.error('Error detecting image type:', err);
+      alert('Failed to detect image type.');
     }
 
-
-    const data = await response.json();
-    console.log('Copyleaks Result:', data);
-
-    const label = data.label || 'unknown';
-    const confidence = isNaN(data.confidence) ? 0 : data.confidence;
-    const icon = label === 'ai' ? '🤖' : label === 'human' ? '👤' : '❓';
-
-    result.style.display = 'flex';
-    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
-    resultIcon.textContent = icon;
-
-    result.className = 'result ' + (label === 'ai' ? 'ai' : label === 'human' ? 'human' : '');
-
-    confidenceWrapper.style.display = 'block';
-    confidenceBar.style.width = `${confidence}%`;
-    confidenceBar.textContent = `${confidence}%`;
-
-  } catch (error) {
-    console.error('Error detecting image type:', error);
-    alert('Failed to detect image type.');
-  }
-
-  typeBtn.disabled = false;
-  typeBtn.textContent = 'Detect Image Type';
+    typeBtn.disabled = false;
+    typeBtn.textContent = 'Detect Image Type';
+  })();
 });
 
   
