@@ -671,7 +671,7 @@ typeBtn.addEventListener('click', async () => {
   }
 
   try {
-    const resizeImage = await resizeImage(currentImageData);
+    const resizedImage = await resizeImage(currentImageData);
 
     const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
       method: 'POST',
