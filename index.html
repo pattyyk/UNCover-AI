@@ -365,14 +365,17 @@ function resizeImage(base64, maxWidth = 800, maxHeight = 800) {
         width = Math.floor(width * scale);
         height = Math.floor(height * scale);
       }
- 
-     
+
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
       resolve(canvas.toDataURL('image/jpeg', 0.7)); // compress
+    };
+    img.onerror = () => {
+      console.error('Failed to load base64 image.');
+      resolve(null); // fallback or reject if preferred
     };
     img.src = base64;
   });
@@ -661,8 +664,14 @@ typeBtn.addEventListener('click', async () => {
   typeBtn.disabled = true;
   typeBtn.textContent = 'Detecting...';
 
+  //check
+  if (!currentImageData) {
+  console.error('❌ currentImageData is empty or null');
+  return;
+  }
+
   try {
-    const resizedImage = await resizeImage(currentImageData);
+    const resizeImage = await resizeImage(currentImageData);
 
     const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
       method: 'POST',
