@@ -216,6 +216,8 @@ app.post('/image-detect', async (req, res) => {
 console.log('🧾 Copyleaks status:', apiRes.status);
 console.log('📦 Copyleaks response headers:', JSON.stringify([...apiRes.headers], null, 2));
 console.log('📩 Copyleaks raw text:', JSON.stringify(rawText));
+console.log('🖼 Base64 size:', imageBase64.length);
+
 
 console.log('Starting server...');
 console.log('PORT:', port);
