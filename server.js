@@ -211,7 +211,8 @@ app.post('/image-detect', async (req, res) => {
     console.log('📸 Sending base64 to Copyleaks:', imageBase64.slice(0, 30), '...');
 
     // Step 2: Send image for detection
-    const apiRes = await fetch('https://api.copyleaks.com/v1/ai-content-detector/image/base64', {
+    const apiRes = await fetch('https://api.copyleaks.com/v3/ai-content-detector/image/base64
+', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
