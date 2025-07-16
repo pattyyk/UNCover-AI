@@ -9,10 +9,34 @@
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 0;
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #667eea, #764ba2);
       color: #333;
+    }
+    header {
+      background: rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      padding: 10px 20px;
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    header button {
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: white;
+      color: #4f46e5;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    header button.active {
+      background: #4f46e5;
+      color: white;
     }
     .app-container {
       background: rgba(255, 255, 255, 0.15);
@@ -21,36 +45,35 @@
       box-shadow: 0 8px 32px rgba(118, 75, 162, 0.3);
       width: 95%;
       max-width: 700px;
-      margin: 50px auto;
+      margin: 40px auto;
       padding: 40px;
-      display: flex;
+      display: none;
       flex-direction: column;
       gap: 20px;
+    }
+    .app-container.active {
+      display: flex;
     }
     h1 {
       text-align: center;
       font-weight: 600;
-      font-size: 2.3rem;
+      font-size: 2.2rem;
       color: white;
       text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
     }
-    textarea {
+    textarea, input[type="file"] {
       width: 100%;
-      min-height: 140px;
       border-radius: 16px;
       border: none;
-      padding: 16px;
+      padding: 14px;
       font-size: 1rem;
-      resize: vertical;
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       box-shadow: inset 0 0 10px rgba(118, 75, 162, 0.2);
     }
-    input[type="file"] {
-      background: white;
-      padding: 10px;
-      border-radius: 12px;
-      font-size: 1rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    img {
+      border-radius: 16px;
+      max-width: 100%;
+      margin-top: 10px;
     }
     button {
       cursor: pointer;
@@ -60,17 +83,12 @@
       font-weight: 600;
       font-size: 1.05rem;
       transition: background 0.3s ease, box-shadow 0.3s ease;
-      box-shadow: 0 6px 18px rgba(118, 75, 162, 0.35);
       color: white;
       background: linear-gradient(45deg, #6a11cb, #2575fc);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
+      box-shadow: 0 6px 18px rgba(118, 75, 162, 0.35);
     }
     button:hover:not(:disabled) {
       background: linear-gradient(45deg, #2575fc, #6a11cb);
-      box-shadow: 0 9px 25px rgba(101, 78, 230, 0.6);
     }
     .result {
       display: none;
@@ -107,16 +125,18 @@
       transition: width 0.4s ease;
       border-radius: 20px;
     }
-    @media (max-width: 480px) {
-      .app-container { padding: 30px 20px; }
-      h1 { font-size: 2rem; }
-    }
   </style>
 </head>
 <body>
 
+  <header>
+    <button class="tab-btn active" data-tab="textTab">AI vs Human</button>
+    <button class="tab-btn" data-tab="newsTab">Fake News</button>
+    <button class="tab-btn" data-tab="imageTab">Image Detector</button>
+  </header>
+
   <!-- AI vs Human -->
-  <main class="app-container" role="main">
+  <main id="textTab" class="app-container active">
     <h1>🤖 AI vs Human Text Detector</h1>
     <textarea id="inputText" placeholder="Paste your text here..."></textarea>
     <div class="info-bar">
@@ -130,25 +150,35 @@
     </div>
   </main>
 
-  <!-- Fake News Detector -->
-  <main class="app-container" role="main">
+  <!-- Fake News -->
+  <main id="newsTab" class="app-container">
     <h1>📰 Fake News Detector</h1>
     <textarea id="newsInput" placeholder="Paste a news article or headline..."></textarea>
     <button id="newsCheckBtn">Check for Fake News 🕵️‍♀️</button>
     <div id="newsResult" class="result"></div>
   </main>
 
-  <!-- Image Detector -->
-  <main class="app-container" role="main">
+  <!-- Image -->
+  <main id="imageTab" class="app-container">
     <h1>🖼️ Image AI Detector</h1>
     <input type="file" id="imageInput" accept="image/*" />
-    <img id="imagePreview" style="max-width: 100%; border-radius: 16px; margin-top: 14px; display: none;" />
+    <img id="imagePreview" style="display:none;" />
     <button id="detectImageBtn">Detect Image Origin 🤖👤</button>
     <div id="imageResult" class="result"></div>
   </main>
 
   <script>
-    // AI vs Human Detection
+    // === Nav tab switching ===
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.app-container').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // === Text detection ===
     const inputText = document.getElementById('inputText');
     const wordCount = document.getElementById('wordCount');
     const charCount = document.getElementById('charCount');
@@ -190,7 +220,7 @@
       }
     });
 
-    // Fake News Detection
+    // === Fake News Detection ===
     const newsInput = document.getElementById('newsInput');
     const newsCheckBtn = document.getElementById('newsCheckBtn');
     const newsResult = document.getElementById('newsResult');
@@ -215,7 +245,7 @@
       }
     });
 
-    // Image Detection
+    // === Image Detection ===
     const imageInput = document.getElementById('imageInput');
     const imagePreview = document.getElementById('imagePreview');
     const detectImageBtn = document.getElementById('detectImageBtn');
@@ -240,7 +270,7 @@
       imageResult.textContent = '⏳ Analyzing image...';
       imageResult.style.display = 'block';
       try {
-        const res = await fetch('https://your-backend-url.com/image-detect', {
+        const res = await fetch('https://fake-news-backend-1.onrender.com', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ image: base64Image })
