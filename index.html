@@ -716,6 +716,30 @@ console.log('Resized image:', resizedImage);
   console.log('📬 Copyleaks status:', apiRes.status);
 console.log('📬 Copyleaks headers:', [...apiRes.headers.entries()]);
 
+    //fakenews detectiobn
+    const newsInput = document.getElementById('newsInput');
+    const newsCheckBtn = document.getElementById('newsCheckBtn');
+    const newsResult = document.getElementById('newsResult');
+
+    newsCheckBtn.addEventListener('click', async () => {
+      const text = newsInput.value.trim();
+      if (!text) return alert('Please enter a news headline or article!');
+      newsResult.textContent = '⏳ Checking...';
+      newsResult.style.display = 'block';
+      try {
+        const res = await fetch('https://uncover-ai.onrender.com/fake-news-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        if (data.error) newsResult.textContent = `❌ Error: ${data.error}`;
+        else newsResult.innerHTML = data.verdict.replace(/\n/g, '<br>');
+      } catch (err) {
+        newsResult.textContent = '❌ Network error.';
+        console.error(err);
+      }
+    });
 
   </script>
 
