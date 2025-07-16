@@ -516,6 +516,7 @@ capBtn.addEventListener('click', () => {
   camera.style.display = 'none';
   capBtn.style.display = 'none';
   typeBtn.disabled = false;
+  typeBtn.style.display = 'inline-block'
   if (stream) stream.getTracks().forEach(track => track.stop());
 });
 
@@ -536,6 +537,7 @@ imageUpload.addEventListener('change', () => {
       imagePreview.src = currentImageData;
       imagePreview.style.display = 'block';
       typeBtn.disabled = false;
+      typeBtn.style.display = 'inline-block'
     };
     reader.readAsDataURL(file);
   }
