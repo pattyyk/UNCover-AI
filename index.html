@@ -346,8 +346,8 @@
   </main>
 
   <script>
-  function handleHashChange() {
-  const hash = window.location.hash || '#detector'; // default tab is detector
+function handleHashChange() {
+  const hash = window.location.hash || '#detector';
   const sections = document.querySelectorAll('.section');
   const links = document.querySelectorAll('nav a');
 
@@ -376,322 +376,76 @@
   });
 }
 
-//resize pics
 function resizeImage(base64, maxWidth = 800, maxHeight = 800) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
       let width = img.width;
       let height = img.height;
-
       if (width > maxWidth || height > maxHeight) {
         const scale = Math.min(maxWidth / width, maxHeight / height);
         width = Math.floor(width * scale);
         height = Math.floor(height * scale);
       }
-
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.7)); // compress
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
     };
     img.onerror = () => {
       console.error('Failed to load base64 image.');
-      resolve(null); // fallback or reject if preferred
+      resolve(null);
     };
     img.src = base64;
   });
 }
 
+window.addEventListener('hashchange', handleHashChange);
+window.addEventListener('load', handleHashChange);
 
+// Text Detector Logic
+const inputText = document.getElementById('inputText');
+const wordCount = document.getElementById('wordCount');
+const charCount = document.getElementById('charCount');
+const detectBtn = document.getElementById('detectBtn');
+const copyBtn = document.getElementById('copyBtn');
+const clearBtn = document.getElementById('clearBtn');
+const result = document.getElementById('result');
+const resultIcon = document.getElementById('resultIcon');
+const resultText = document.getElementById('resultText');
+const confidenceWrapper = document.getElementById('confidenceWrapper');
+const confidenceBar = document.getElementById('confidenceBar');
 
-    window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('load', handleHashChange);
+inputText.addEventListener('input', () => {
+  const text = inputText.value.trim();
+  const words = text === '' ? 0 : text.split(/\s+/).length;
+  wordCount.textContent = words;
+  charCount.textContent = text.length;
+  result.style.display = 'none';
+  copyBtn.disabled = true;
+  confidenceWrapper.style.display = 'none';
+});
 
-    // === Detector Tab Logic ===
-
-    const inputText = document.getElementById('inputText');
-    const wordCount = document.getElementById('wordCount');
-    const charCount = document.getElementById('charCount');
-    const detectBtn = document.getElementById('detectBtn');
-    const copyBtn = document.getElementById('copyBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const result = document.getElementById('result');
-
-
-    const resultIcon = document.getElementById('resultIcon');
-    const resultText = document.getElementById('resultText');
-  
-
-
-
-    let resetTimeout;
-
-    inputText.addEventListener('input', () => {
-      const text = inputText.value.trim();
-      const words = text === '' ? 0 : text.split(/\s+/).length;
-      wordCount.textContent = words;
-      charCount.textContent = text.length;
-      result.style.display = 'none';
-      copyBtn.disabled = true;
-      confidenceWrapper.style.display = 'none';
-
-    });
-
-   
-
-  detectBtn.addEventListener('click', async () => {
+detectBtn.addEventListener('click', async () => {
   const inputValue = inputText.value.trim();
   if (!inputValue) {
     alert('Please enter some text to detect!');
     return;
   }
-
   detectBtn.disabled = true;
   detectBtn.textContent = 'Detecting...';
 
   try {
-    const response = await fetch('https://uncover-ai.onrender.com/detect', {
+    const response = await fetch('https://fake-news-backend-1.onrender.com/detect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: inputValue })
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Detection failed');
-    }
-
+    if (!response.ok) throw new Error(await response.text());
     const data = await response.json();
-    console.log('Backend response:', data);
 
-    const label = data.label || 'unknown'; // now expecting 'ai' or 'human'
-    const confidence = isNaN(data.confidence) ? 0 : data.confidence;
-    const icon = data.icon || '❓';
-    
-    console.log('Icon:', icon);
-
-    result.style.display = 'flex';
-    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
-    resultIcon.textContent = icon;
-
-    if (label === "ai") {
-      result.className = 'result ai';
-    } else if (label === "human") {
-      result.className = 'result human';
-    } else {
-      result.className = 'result';
-    }
-
-    confidenceBar.style.width = `${confidence}%`;
-    confidenceBar.textContent = `${confidence}%`;
-    confidenceWrapper.style.display = 'block';
-    copyBtn.disabled = false;
-
-  } catch (error) {
-    console.error('Error:', error);
-    alert(error.message);
-  }
-
-  detectBtn.disabled = false;
-  detectBtn.textContent = 'Detect Text Type 🔍';
-});
-
-
-
-
-
-
-    copyBtn.addEventListener('click', () => {
-      const txt = resultText.textContent;
-      if (txt) {
-        navigator.clipboard.writeText(txt).then(() => {
-          copyBtn.textContent = 'Copied ✔️';
-          setTimeout(() => copyBtn.textContent = 'Copy Result 📋', 1500);
-        });
-      }
-    });
-
-    clearBtn.addEventListener('click', () => {
-      inputText.value = '';
-      wordCount.textContent = '0';
-      charCount.textContent = '0';
-      result.style.display = 'none';
-      confidenceWrapper.style.display = 'none';
-      copyBtn.disabled = true;
-     
-    });
-
-   function showResult(text, cls, icon = '❓') {
-  resultText.textContent = text;
-  result.className = 'result ' + cls;
-  resultIcon.textContent = icon;
-  result.style.display = 'flex';
-  copyBtn.disabled = false;
-
-  confidenceWrapper.style.display = 'block';
-  const input = inputText.value.trim().toLowerCase();
-  let confidence = 0;
-
-  if (cls === 'ai') {
-    confidence = total ? Math.round((aiMatches / total) * 100) : 90;
-  } else if (cls === 'human') {
-    confidence = total ? Math.round((humanMatches / total) * 100) : 90;
-  }
-  
-  confidenceBar.style.width = `${confidence}%`;
-  confidenceBar.textContent = `${confidence}%`;
-}
-    //vdo detection wip
-  
-const camBtn = document.getElementById('camBtn');
-const capBtn = document.getElementById('capBtn');
-const imgBtn = document.getElementById('imgBtn');
-const imageUpload = document.getElementById('imageUpload');
-const camera = document.getElementById('camera');
-const imagePreview = document.getElementById('imagePreview');
-const canvas = document.getElementById('snapshot');
-const typeBtn = document.getElementById('typeBtn');
-let stream = null;
-
-// Show camera and capture button when clicking "Take photo"
-camBtn.addEventListener('click', async () => {
-  imagePreview.style.display = 'none';
-  capBtn.style.display = 'inline-block';
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    camera.srcObject = stream;
-    camera.style.display = 'block';
-  } catch (err) {
-    alert('Cannot access camera');
-    console.error(err);
-  }
-});
-
-// Take snapshot when clicking "Capture Image"
-// After taking photo (camera)
-capBtn.addEventListener('click', () => {
-  canvas.width = camera.videoWidth;
-  canvas.height = camera.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
-
-  currentImageData = canvas.toDataURL('image/jpeg'); // Store image
-  snapshot.src = currentImageData;
-  snapshot.style.display = 'block';
-
-  camera.style.display = 'none';
-  capBtn.style.display = 'none';
-
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-    stream = null;
-  }
-
-  typeBtn.disabled = false; // Enable type detection
-});
-
-// After uploading image
-imageUpload.addEventListener('change', () => {
-  const file = imageUpload.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      currentImageData = e.target.result; // Store image
-      imagePreview.src = currentImageData;
-      imagePreview.style.display = 'block';
-      typeBtn.disabled = false;
-      snapshot.style.display = 'none';
-    };
-    reader.readAsDataURL(file);
-  }
-});
-
-// Insert photo button logic (same as before)
-imgBtn.addEventListener('click', () => {
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-    stream = null;
-    camera.style.display = 'none';
-  }
-  capBtn.style.display = 'none';
-  imagePreview.style.display = 'none';
-  imageUpload.click();
-});
-
-// Preview uploaded image
-imageUpload.addEventListener('change', () => {
-  const file = imageUpload.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      imagePreview.src = e.target.result;
-      imagePreview.style.display = 'block';
-      typeBtn.style.display = 'inline-block';
-    };
-    reader.readAsDataURL(file);
-
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      stream = null;
-    }
-    camera.style.display = 'none';
-    capBtn.style.display = 'none';
-  }
-});
-
-
-let currentImageData = null; // Store Base64 image here
-
-
-
-
-
-
-
-
-const snapshotCanvas = document.getElementById('snapshot');
-const confidenceWrapper = document.getElementById('confidenceWrapper');
-const confidenceBar = document.getElementById('confidenceBar');
-
-
-
-typeBtn.addEventListener('click', async () => {
-  if (!currentImageData) {
-    alert('No image captured or uploaded!');
-    return;
-  }
-
-  typeBtn.disabled = true;
-  typeBtn.textContent = 'Detecting...';
-
-  console.log('Current image data (before resize):', currentImageData);
-
-
-
-  //check
-  if (!currentImageData) {
-  console.error('❌ currentImageData is empty or null');
-  return;
-  }
-
-  try {
-    const resizedImage = await resizeImage(currentImageData);
-console.log('Resized image:', resizedImage);
-    const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: resizedImage })
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error('Backend error: ' + text);
-    }
-
-    const data = await response.json();
     const label = data.label || 'unknown';
     const confidence = isNaN(data.confidence) ? 0 : data.confidence;
     const icon = label === 'ai' ? '🤖' : label === 'human' ? '👤' : '❓';
@@ -703,18 +457,121 @@ console.log('Resized image:', resizedImage);
     confidenceWrapper.style.display = 'block';
     confidenceBar.style.width = `${confidence}%`;
     confidenceBar.textContent = `${confidence}%`;
+    copyBtn.disabled = false;
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
 
+  detectBtn.disabled = false;
+  detectBtn.textContent = 'Detect Text Type 🔍';
+});
+
+copyBtn.addEventListener('click', () => {
+  const txt = resultText.textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    copyBtn.textContent = 'Copied ✔️';
+    setTimeout(() => copyBtn.textContent = 'Copy Result 📋', 1500);
+  });
+});
+
+clearBtn.addEventListener('click', () => {
+  inputText.value = '';
+  wordCount.textContent = '0';
+  charCount.textContent = '0';
+  result.style.display = 'none';
+  confidenceWrapper.style.display = 'none';
+  copyBtn.disabled = true;
+});
+
+// Image Detector Logic
+const camBtn = document.getElementById('camBtn');
+const capBtn = document.getElementById('capBtn');
+const imgBtn = document.getElementById('imgBtn');
+const imageUpload = document.getElementById('imageUpload');
+const camera = document.getElementById('camera');
+const imagePreview = document.getElementById('imagePreview');
+const canvas = document.getElementById('snapshot');
+const typeBtn = document.getElementById('typeBtn');
+let currentImageData = null;
+let stream = null;
+
+camBtn.addEventListener('click', async () => {
+  imagePreview.style.display = 'none';
+  capBtn.style.display = 'inline-block';
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    camera.srcObject = stream;
+    camera.style.display = 'block';
+  } catch {
+    alert('Cannot access camera');
+  }
+});
+
+capBtn.addEventListener('click', () => {
+  canvas.width = camera.videoWidth;
+  canvas.height = camera.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
+  currentImageData = canvas.toDataURL('image/jpeg');
+  camera.style.display = 'none';
+  capBtn.style.display = 'none';
+  typeBtn.disabled = false;
+  if (stream) stream.getTracks().forEach(track => track.stop());
+});
+
+imgBtn.addEventListener('click', () => {
+  if (stream) stream.getTracks().forEach(track => track.stop());
+  camera.style.display = 'none';
+  capBtn.style.display = 'none';
+  imagePreview.style.display = 'none';
+  imageUpload.click();
+});
+
+imageUpload.addEventListener('change', () => {
+  const file = imageUpload.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      currentImageData = e.target.result;
+      imagePreview.src = currentImageData;
+      imagePreview.style.display = 'block';
+      typeBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+typeBtn.addEventListener('click', async () => {
+  if (!currentImageData) return alert('No image uploaded!');
+  typeBtn.disabled = true;
+  typeBtn.textContent = 'Detecting...';
+
+  try {
+    const resizedImage = await resizeImage(currentImageData);
+    const response = await fetch('https://fake-news-backend-1.onrender.com/image-detect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: resizedImage })
+    });
+    if (!response.ok) throw new Error(await response.text());
+    const data = await response.json();
+
+    const label = data.label || 'unknown';
+    const confidence = isNaN(data.confidence) ? 0 : data.confidence;
+    const icon = label === 'ai' ? '🤖' : label === 'human' ? '👤' : '❓';
+
+    result.style.display = 'flex';
+    resultText.textContent = `Prediction: ${label.toUpperCase()} (${confidence}%)`;
+    resultIcon.textContent = icon;
+    result.className = 'result ' + (label === 'ai' ? 'ai' : label === 'human' ? 'human' : '');
+    confidenceWrapper.style.display = 'block';
+    confidenceBar.style.width = `${confidence}%`;
+    confidenceBar.textContent = `${confidence}%`;
   } catch (err) {
-    console.error('Error detecting image type:', err);
-    alert('Failed to detect image type.');
+    alert('Error: ' + err.message);
   }
 
   typeBtn.disabled = false;
   typeBtn.textContent = 'Detect Image Type';
 });
-
-  console.log('📬 Copyleaks status:', apiRes.status);
-console.log('📬 Copyleaks headers:', [...apiRes.headers.entries()]);
-
-
-  </script>
+</script>
