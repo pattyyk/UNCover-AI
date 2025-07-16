@@ -743,8 +743,75 @@ console.log('Resized image:', resizedImage);
       }
     });
 
+    const tabFakeNews = document.getElementById('tabFakeNews');
+const newsTab = document.getElementById('newsTab');
 
+// tab switching (optional depending on your system)
+tabFakeNews.addEventListener('click', () => {
+  document.querySelectorAll('main').forEach(el => el.style.display = 'none');
+  newsTab.style.display = 'block';
+});
 
+const newsInput = document.getElementById('newsInput');
+const newsCheckBtn = document.getElementById('newsCheckBtn');
+const newsExplainBtn = document.getElementById('newsExplainBtn');
+const newsClearBtn = document.getElementById('newsClearBtn');
+const newsResult = document.getElementById('newsResult');
+
+let lastText = '';
+let lastVerdict = '';
+
+newsCheckBtn.addEventListener('click', async () => {
+  const text = newsInput.value.trim();
+  if (!text) return alert('Please enter news text!');
+  newsResult.textContent = '⏳ Checking...';
+  newsResult.classList.remove('hidden');
+  newsExplainBtn.disabled = true;
+
+  try {
+    const res = await fetch('/api/fake-news-check', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ text })
+    });
+    const data = await res.json();
+    if (data.error) {
+      newsResult.textContent = `❌ ${data.error}`;
+    } else {
+      lastText = text;
+      lastVerdict = data.verdict;
+      newsResult.innerHTML = `<strong>Claude Verdict:</strong><br>${data.verdict.replace(/\n/g, '<br>')}`;
+      newsExplainBtn.disabled = false;
+    }
+  } catch (err) {
+    newsResult.textContent = '❌ Server error.';
+    console.error(err);
+  }
+});
+
+newsExplainBtn.addEventListener('click', async () => {
+  if (!lastText || !lastVerdict) return;
+  newsResult.textContent = '💬 Fetching explanation...';
+  try {
+    const res = await fetch('/api/fake-news-explain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: lastText, verdict: lastVerdict })
+    });
+    const data = await res.json();
+    newsResult.innerHTML = `<strong>Explanation:</strong><br>${data.explanation.replace(/\n/g, '<br>')}`;
+  } catch (err) {
+    newsResult.textContent = '❌ Error getting explanation.';
+    console.error(err);
+  }
+});
+
+newsClearBtn.addEventListener('click', () => {
+  newsInput.value = '';
+  newsResult.textContent = '';
+  newsResult.classList.add('hidden');
+  newsExplainBtn.disabled = true;
+});
    
   </script>
 
