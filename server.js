@@ -142,7 +142,7 @@ app.post('/image-detect', async (req, res) => {
 });
 
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
-app.post('/api/fake-news-check', async (req, res) => {
+app.post('/fake-news-check', async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'No text provided' });
 
