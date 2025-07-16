@@ -299,31 +299,95 @@
       <button id="capBtn" aria-label="insert photo">Capture photo 📸 </button>
        <button id="typeBtn" style="display:none;" aria-label="insert photo">Detect photo type 🔍</button>
     </section>
-    <!-- FAKE NEWS -->
-   <section id="fakeNews" class="section" role="tabpanel" aria-labelledby="linkFakeNews" tabindex="0">
-  <h1>📰 Fake News Detector</h1>
+   <!-- ✅ Updated Fake News Section Only -->
+<main id="newsTab" class="app-container section" role="tabpanel" aria-labelledby="linkFakeNews" tabindex="0" hidden>
+  <h1>📰 Fake News Checker</h1>
+  <textarea id="newsInput" placeholder="Paste a news article, tweet, or claim..."></textarea>
 
-  <textarea id="fakeNewsInput" placeholder="Paste a news article or headline..." aria-label="Fake news input area"></textarea>
-
-  <div class="info-bar" aria-live="polite">
-    <div>Words: <span id="fnWordCount">0</span></div>
-    <div>Characters: <span id="fnCharCount">0</span></div>
+  <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+    <button id="newsCheckBtn">Check Fake News 🔎</button>
+    <button id="newsExplainBtn" disabled>Explain Verdict 💬</button>
+    <button id="newsClearBtn">Clear 🧹</button>
   </div>
 
-  <button id="newsCheckBtn">Check for Fake News 🕵️‍♀️</button>
-  <button id="fakeNewsCopyBtn" aria-label="Copy fake news detection result" disabled>Copy Result 📋</button>
-  <button id="fakeNewsClearBtn" aria-label="Clear fake news text area">Clear 🧹</button>
- 
+  <div id="newsResult" class="result" style="margin-top: 20px; white-space: pre-wrap;"></div>
+</main>
 
-  <div id="newsResult" class="result">
-    <span id="fakeNewsResultIcon" class="result-icon" aria-hidden="true"></span>
-    <span id="fakeNewsResultText"></span>
-  </div>
-</section>
+<script>
+  const newsInput = document.getElementById('newsInput');
+  const newsCheckBtn = document.getElementById('newsCheckBtn');
+  const newsExplainBtn = document.getElementById('newsExplainBtn');
+  const newsClearBtn = document.getElementById('newsClearBtn');
+  const newsResult = document.getElementById('newsResult');
+  const tabFakeNews = document.getElementById('linkFakeNews');
+  const newsTab = document.getElementById('newsTab');
 
+  let lastText = '';
+  let lastVerdict = '';
 
-  
-    </section>
+  // Tab switching
+  if (tabFakeNews && newsTab) {
+    tabFakeNews.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.hash = '#fakeNews';
+      handleHashChange();
+    });
+  }
+
+  newsCheckBtn.addEventListener('click', async () => {
+    const text = newsInput.value.trim();
+    if (!text) return alert('Please enter a news article or headline!');
+    newsResult.textContent = '⏳ Checking...';
+    newsResult.style.display = 'block';
+    newsExplainBtn.disabled = true;
+
+    try {
+      const res = await fetch('https://uncover-ai.onrender.com/fake-news-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json();
+      if (data.error) {
+        newsResult.textContent = `❌ ${data.error}`;
+      } else {
+        lastText = text;
+        lastVerdict = data.verdict;
+        newsResult.innerHTML = `<strong>Claude Verdict:</strong><br>${data.verdict.replace(/\n/g, '<br>')}`;
+        newsExplainBtn.disabled = false;
+      }
+    } catch (err) {
+      newsResult.textContent = '❌ Server error.';
+      console.error(err);
+    }
+  });
+
+  newsExplainBtn.addEventListener('click', async () => {
+    if (!lastText || !lastVerdict) return;
+    newsResult.textContent = '💬 Fetching explanation...';
+    try {
+      const res = await fetch('/api/fake-news-explain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: lastText, verdict: lastVerdict })
+      });
+      const data = await res.json();
+      newsResult.innerHTML = `<strong>Explanation:</strong><br>${data.explanation.replace(/\n/g, '<br>')}`;
+    } catch (err) {
+      newsResult.textContent = '❌ Error getting explanation.';
+      console.error(err);
+    }
+  });
+
+  newsClearBtn.addEventListener('click', () => {
+    newsInput.value = '';
+    newsResult.textContent = '';
+    newsResult.style.display = 'none';
+    newsExplainBtn.disabled = true;
+    lastText = '';
+    lastVerdict = '';
+  });
+</script>
 
     <!-- ABOUT -->
     <section id="about" class="section" role="tabpanel" aria-labelledby="linkAbout" tabindex="0" hidden>
