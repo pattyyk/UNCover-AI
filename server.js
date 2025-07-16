@@ -20,6 +20,45 @@ app.use(cors({
 
 app.use(express.json());
 
+// === 3. FAKE NEWS DETECTION VIA CLAUDE 3.5 ===
+app.post('/api/fake-news-check', async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ error: 'No text provided' });
+
+  try {
+    const response = await fetch(
+      'https://api.anthropic.com/v1/messages',
+      {
+        method: 'POST',
+        headers: {
+          'x-api-key': process.env.CLAUDE_API_KEY,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'claude-3.5-sonnet-20240620',
+          messages: [
+            {
+              role: 'user',
+              content: `Please evaluate the following article or statement to determine if it may be fake news. Give a verdict ("Likely Real", "Possibly Fake", or "Likely Fake"), a confidence score out of 100, and a short explanation that references reliable sources or reasoning.\n\nText:\n"""${text}"""`
+            }
+          ],
+          max_tokens: 1000
+        })
+      }
+    );
+
+    const data = await response.json();
+    const rawOutput = data?.content?.[0]?.text || 'No response from Claude';
+
+    res.json({
+      verdict: rawOutput
+    });
+  } catch (error) {
+    console.error('❌ Claude error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 app.post('/detect', async (req, res) => {
