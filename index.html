@@ -713,10 +713,7 @@ console.log('Resized image:', resizedImage);
   typeBtn.textContent = 'Detect Image Type';
 });
 
-  console.log('📬 Copyleaks status:', apiRes.status);
-console.log('📬 Copyleaks headers:', [...apiRes.headers.entries()]);
-
-    //fakenews detectiobn
+     //fakenews detectiobn
     const newsInput = document.getElementById('newsInput');
     const newsCheckBtn = document.getElementById('newsCheckBtn');
     const newsResult = document.getElementById('newsResult');
@@ -741,6 +738,10 @@ console.log('📬 Copyleaks headers:', [...apiRes.headers.entries()]);
       }
     });
 
+  console.log('📬 Copyleaks status:', apiRes.status);
+console.log('📬 Copyleaks headers:', [...apiRes.headers.entries()]);
+
+   
   </script>
 
   typeBtn.disabled = false;
