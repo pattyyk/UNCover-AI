@@ -310,24 +310,27 @@
        <button id="typeBtn" style="display:none;" aria-label="insert photo">Detect photo type 🔍</button>
 
     <!-- FAKE NEWS -->
-    <section id="fakeNews" class="section" role="tabpanel" aria-labelledby="linkFakeNews" tabindex="0">
-      <h1>📰 Fake News Detector</h1>
+   <section id="fakeNews" class="section" role="tabpanel" aria-labelledby="linkFakeNews" tabindex="0">
+  <h1>📰 Fake News Detector</h1>
 
-      <textarea id="fakeNewsInput" placeholder="Paste a news article or headline..." aria-label="Fake news input area"></textarea>
+  <textarea id="fakeNewsInput" placeholder="Paste a news article or headline..." aria-label="Fake news input area"></textarea>
 
-      <div class="info-bar" aria-live="polite">
-        <div>Words: <span id="fnWordCount">0</span></div>
-        <div>Characters: <span id="fnCharCount">0</span></div>
-      </div>
+  <div class="info-bar" aria-live="polite">
+    <div>Words: <span id="fnWordCount">0</span></div>
+    <div>Characters: <span id="fnCharCount">0</span></div>
+  </div>
 
-      <button id="fakeNewsDetectBtn" aria-label="Detect fake news">Detect Fake News 📰</button>
-      <button id="fakeNewsCopyBtn" aria-label="Copy fake news detection result" disabled>Copy Result 📋</button>
-      <button id="fakeNewsClearBtn" aria-label="Clear fake news text area">Clear 🧹</button>
-     <button id="newsCheckBtn">Check for Fake News 🕵️‍♀️</button>
-    <div id="newsResult" class="result"></div>
-        <span id="fakeNewsResultIcon" class="result-icon" aria-hidden="true"></span>
-        <span id="fakeNewsResultText"></span>
-      </div>
+  <button id="fakeNewsDetectBtn" aria-label="Detect fake news">Detect Fake News 📰</button>
+  <button id="fakeNewsCopyBtn" aria-label="Copy fake news detection result" disabled>Copy Result 📋</button>
+  <button id="fakeNewsClearBtn" aria-label="Clear fake news text area">Clear 🧹</button>
+  <button id="newsCheckBtn">Check for Fake News 🕵️‍♀️</button>
+
+  <div id="newsResult" class="result">
+    <span id="fakeNewsResultIcon" class="result-icon" aria-hidden="true"></span>
+    <span id="fakeNewsResultText"></span>
+  </div>
+</section>
+
 
   
     </section>
@@ -712,6 +715,21 @@ console.log('Resized image:', resizedImage);
   typeBtn.disabled = false;
   typeBtn.textContent = 'Detect Image Type';
 });
+    
+const rawText = await apiRes.text();  // Get the raw response body (even if empty)
+
+if (!rawText) {
+  console.error('❌ Empty response from Copyleaks');
+  return res.status(500).json({ error: 'Empty response from Copyleaks' });
+}
+
+let result;
+try {
+  result = JSON.parse(rawText);  // Try to parse only if not empty
+} catch (err) {
+  console.error('❌ Failed to parse Copyleaks image response:', rawText);
+  return res.status(500).json({ error: 'Invalid JSON from Copyleaks' });
+}
 
      //fakenews detectiobn
     const newsInput = document.getElementById('newsInput');
