@@ -251,7 +251,7 @@
     <a href="#home" id="linkHome" aria-selected="false" tabindex="0">Home</a>
     <a href="#detector" id="linkDetector" aria-selected="true" class="active" tabindex="0">Detector</a>
     <a href="#image" id="linkImage" aria-selected="false" tabindex="0">AI Image Detector</a>
-    <a href="v1.html" id="linkFakeNews" aria-selected="false" tabindex="0">Fake News</a>
+    <a href="#fakenews" id="linkFakeNews" aria-selected="false" tabindex="0">Fake News</a>
     <a href="#about" id="linkAbout" aria-selected="false" tabindex="0">About Us</a>
   </nav>
 
@@ -310,10 +310,10 @@
        <button id="typeBtn" style="display:none;" aria-label="insert photo">Detect photo type 🔍</button>
 
     <!-- FAKE NEWS -->
-    <section id="fakeNews" class="section" role="tabpanel" aria-labelledby="linkFakeNews" tabindex="0" hidden>
-      <h1>Fake News Detection</h1>
+    <section id="fakeNews" class="section" role="tabpanel" aria-labelledby="linkFakeNews" tabindex="0">
+      <h1>📰 Fake News Detector</h1>
 
-      <textarea id="fakeNewsInput" placeholder="Paste news article or text here..." aria-label="Fake news input area"></textarea>
+      <textarea id="fakeNewsInput" placeholder="Paste a news article or headline..." aria-label="Fake news input area"></textarea>
 
       <div class="info-bar" aria-live="polite">
         <div>Words: <span id="fnWordCount">0</span></div>
@@ -323,8 +323,8 @@
       <button id="fakeNewsDetectBtn" aria-label="Detect fake news">Detect Fake News 📰</button>
       <button id="fakeNewsCopyBtn" aria-label="Copy fake news detection result" disabled>Copy Result 📋</button>
       <button id="fakeNewsClearBtn" aria-label="Clear fake news text area">Clear 🧹</button>
-
-      <div id="fakeNewsResult" class="result" role="status" aria-live="polite" aria-atomic="true" style="display:none;">
+     <button id="newsCheckBtn">Check for Fake News 🕵️‍♀️</button>
+    <div id="newsResult" class="result"></div>
         <span id="fakeNewsResultIcon" class="result-icon" aria-hidden="true"></span>
         <span id="fakeNewsResultText"></span>
       </div>
