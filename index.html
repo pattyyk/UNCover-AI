@@ -314,7 +314,21 @@
 
   <div id="newsResult" class="result" style="margin-top: 20px; white-space: pre-wrap;"></div>
 </section>
+    <!-- ABOUT -->
+    <section id="about" class="section" role="tabpanel" aria-labelledby="linkAbout" tabindex="0" hidden>
+      <h1>About Us</h1>
+      <p style="max-width:600px; margin: 0 auto; font-size: 1.1rem; line-height: 1.5; color: white;">
+        Welcome to our AI & Fake News Detection app! Our mission is to provide easy-to-use, accurate tools to help you
+        identify AI-generated text and detect fake news articles. We use keyword-based heuristic methods in this
+        frontend-only app for quick, offline detection with instant feedback. Thank you for using our app and stay
+        informed and aware!
+      </p>
+    </section>
+
 </main>
+
+    
+   
 
 <script>
   const newsInput = document.getElementById('newsInput');
@@ -323,13 +337,13 @@
   const newsClearBtn = document.getElementById('newsClearBtn');
   const newsResult = document.getElementById('newsResult');
   const tabFakeNews = document.getElementById('linkFakeNews');
-  const newsTab = document.getElementById('newsTab');
+  const fakeNews = document.getElementById('fakeNews');
 
   let lastText = '';
   let lastVerdict = '';
 
   // Tab switching
-  if (tabFakeNews && newsTab) {
+  if (tabFakeNews && fakeNews) {
     tabFakeNews.addEventListener('click', (e) => {
       e.preventDefault();
       window.location.hash = '#fakeNews';
@@ -390,33 +404,9 @@
     lastText = '';
     lastVerdict = '';
   });
-</script>
 
-    <!-- ABOUT -->
-    <section id="about" class="section" role="tabpanel" aria-labelledby="linkAbout" tabindex="0" hidden>
-      <h1>About Us</h1>
-      <p style="max-width:600px; margin: 0 auto; font-size: 1.1rem; line-height: 1.5; color: white;">
-        Welcome to our AI & Fake News Detection app! Our mission is to provide easy-to-use, accurate tools to help you
-        identify AI-generated text and detect fake news articles. We use keyword-based heuristic methods in this
-        frontend-only app for quick, offline detection with instant feedback. Thank you for using our app and stay
-        informed and aware!
-      </p>
-    </section>
 
-    <main id="fakeNews" class="app-container" style="display: none;">
-  <h1>📰 Fake News Checker</h1>
-  <textarea id="newsInput" placeholder="Paste a news article, tweet, or claim..."></textarea>
-
-  <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
-    <button id="newsCheckBtn">Check Fake News 🔎</button>
-    <button id="newsExplainBtn" disabled>Explain Verdict 💬</button>
-    <button id="newsClearBtn">Clear 🧹</button>
-  </div>
-
-  <div id="newsResult" class="result" style="margin-top: 20px; white-space: pre-wrap;"></div>
-  </main>
-
-  <script>
+  
   function handleHashChange() {
   const hash = window.location.hash || '#detector'; // default tab is detector
   const sections = document.querySelectorAll('.section');
@@ -794,16 +784,16 @@ console.log('Resized image:', resizedImage);
   const newsClearBtn = document.getElementById('newsClearBtn');
   const newsResult = document.getElementById('newsResult');
   const tabFakeNews = document.getElementById('tabFakeNews');
-  const newsTab = document.getElementById('newsTab');
+  const fakeNews = document.getElementById('fakeNews');
 
   let lastText = '';
   let lastVerdict = '';
 
   // 🟢 Section tab switching (if using custom tab buttons)
-  if (tabFakeNews && newsTab) {
+  if (tabFakeNews && fakeNews) {
     tabFakeNews.addEventListener('click', () => {
       document.querySelectorAll('main, section').forEach(el => el.style.display = 'none');
-      newsTab.style.display = 'block';
+      fakeNews.style.display = 'block';
     });
   }
 
