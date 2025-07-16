@@ -252,6 +252,7 @@
     <a href="#detector" id="linkDetector" aria-selected="true" class="active" tabindex="0">Detector</a>
     <a href="#image" id="linkImage" aria-selected="false" tabindex="0">AI Image Detector</a>
     <a href="#fakeNews" id="linkFakeNews" aria-selected="false" tabindex="0">Fake News</a>
+    <a href="#news" id="tabFakeNews">Fake News</a>
     <a href="#about" id="linkAbout" aria-selected="false" tabindex="0">About Us</a>
   </nav>
 
@@ -346,6 +347,18 @@
       </p>
     </section>
 
+    <main id="newsTab" class="app-container" style="display: none;">
+  <h1>📰 Fake News Checker</h1>
+  <textarea id="newsInput" placeholder="Paste a news article, tweet, or claim..."></textarea>
+
+  <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+    <button id="newsCheckBtn">Check Fake News 🔎</button>
+    <button id="newsExplainBtn" disabled>Explain Verdict 💬</button>
+    <button id="newsClearBtn">Clear 🧹</button>
+  </div>
+
+  <div id="newsResult" class="result" style="margin-top: 20px; white-space: pre-wrap;"></div>
+</main>
   </main>
 
   <script>
