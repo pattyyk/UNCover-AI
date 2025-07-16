@@ -214,3 +214,58 @@ app.post('/api/fake-news-explain', async (req, res) => {
 console.log('Starting server...');
 console.log('PORT:', port);
 console.log('HUGGINGFACE_API_TOKEN:', !!process.env.HUGGINGFACE_API_TOKEN);
+
+// === FAKE NEWS ROUTES ===
+app.post('/api/fake-news-check', async (req, res) => {
+  const { text } = req.body;
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.CLAUDE_API_KEY,
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-3.5-sonnet-20240620',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: `Is the following text fake news? Respond with a clear answer: ${text}` }]
+      })
+    });
+
+    const data = await response.json();
+    const content = data?.content?.[0]?.text || 'No verdict returned.';
+    res.json({ verdict: content });
+  } catch (err) {
+    console.error('Error checking fake news:', err);
+    res.status(500).json({ error: 'Fake news check failed.' });
+  }
+});
+
+app.post('/api/fake-news-explain', async (req, res) => {
+  const { text, verdict } = req.body;
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.CLAUDE_API_KEY,
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-3.5-sonnet-20240620',
+        max_tokens: 1000,
+        messages: [
+          { role: 'user', content: `You previously said this was your verdict: "${verdict}". Now, explain your reasoning. Original text:\n${text}` }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    const explanation = data?.content?.[0]?.text || 'No explanation returned.';
+    res.json({ explanation });
+  } catch (err) {
+    console.error('Error explaining verdict:', err);
+    res.status(500).json({ error: 'Explanation failed.' });
+  }
+});
