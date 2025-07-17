@@ -96,47 +96,38 @@ app.post('/image-detect', async (req, res) => {
       return res.status(400).json({ error: 'Invalid or empty image data.' });
     }
 
-    // === 1. AUTHENTICATE WITH COPYLEAKS ===
-    const authRes = await fetch('https://id.copyleaks.com/v3/account/login/api', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: process.env.COPYLEAKS_EMAIL,
-        key: process.env.COPYLEAKS_API_KEY
-      })
-    });
-
-    const { access_token } = await authRes.json();
-    if (!access_token) {
-      return res.status(401).json({ error: 'Copyleaks authentication failed' });
-    }
-
-    // === 2. SUBMIT IMAGE FOR DETECTION ===
+    // Use existing token directly in Authorization header
     const apiRes = await fetch('https://api.copyleaks.com/v3/misc/detect', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${access_token}`,
+        'Authorization': `Bearer ${process.env.COPYLEAKS_TOKEN}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ base64 })
     });
 
-const rawText = await apiRes.text();
-console.log('Copyleaks raw response:', rawText); // Debug log
+    const rawText = await apiRes.text();
+    console.log('Copyleaks raw response:', rawText); // debug log
 
-let result;
-try {
-  result = JSON.parse(rawText);
-} catch (err) {
-  console.error('JSON parse failed:', rawText);
-  return res.status(500).json({ error: 'Detection JSON parsing error' });
-}
+    let result;
+    try {
+      result = JSON.parse(rawText);
+    } catch (err) {
+      console.error('JSON parse failed:', rawText);
+      return res.status(500).json({ error: 'Detection JSON parsing error' });
+    }
 
-// Check if response is valid and contains expected fields
-if (!apiRes.ok || typeof result.ai === 'undefined') {
-  console.error('Invalid response from Copyleaks:', result);
-  return res.status(500).json({ error: 'Invalid response from Copyleaks' });
-}
+    if (!apiRes.ok) {
+      return res.status(apiRes.status).json({ error: result.error || 'Detection failed' });
+    }
+
+    res.json(result);
+  } catch (err) {
+    console.error('Backend error:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
 
 // Success
 res.json(result);
