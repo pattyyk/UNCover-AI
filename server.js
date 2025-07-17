@@ -274,3 +274,5 @@ app.post('/api/fake-news-explain', async (req, res) => {
     res.status(500).json({ error: 'Explanation failed.' });
   }
 });
+
+console.log("hello world")
