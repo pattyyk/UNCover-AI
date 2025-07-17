@@ -70,7 +70,8 @@ app.post('/detect', async (req, res) => {
 
 // === 2. IMAGE DETECTION ===
 
-import FormData from 'form-data'; // if not already imported
+import FormData from 'form-data';
+import { Buffer } from 'buffer';
 
 app.post('/image-detect', async (req, res) => {
   try {
@@ -85,13 +86,16 @@ app.post('/image-detect', async (req, res) => {
     const form = new FormData();
     form.append('api_user', process.env.SIGHTENGINE_USER);
     form.append('api_secret', process.env.SIGHTENGINE_SECRET);
-    form.append('models', 'genai'); // correct model name for AI detection
-    form.append('media', `data:image/jpeg;base64,${base64}`);
+    form.append('models', 'genai');
+
+    // Convert base64 to a Buffer and attach as a file
+    const buffer = Buffer.from(base64, 'base64');
+    form.append('media', buffer, { filename: 'upload.jpg', contentType: 'image/jpeg' });
 
     const response = await fetch('https://api.sightengine.com/1.0/check.json', {
       method: 'POST',
       body: form,
-      headers: form.getHeaders(), // <-- getHeaders() provides the correct Content-Type with boundary
+      headers: form.getHeaders(),
     });
 
     const result = await response.json();
@@ -100,7 +104,6 @@ app.post('/image-detect', async (req, res) => {
       return res.status(response.status).json({ error: 'Sightengine detection failed', raw: result });
     }
 
-    // Return result or process it further here
     res.json(result);
   } catch (err) {
     console.error('Backend error:', err);
