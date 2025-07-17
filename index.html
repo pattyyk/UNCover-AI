@@ -290,6 +290,7 @@
       <button id="imgBtn" aria-label="insert photo">Insert photo 🖼️ </button>
       <video id="camera" width="80%" autoplay playsinline></video>
       <img id="imagePreview" style="max-width: 80%; display:none; border-radius: 12px; margin-top: 12px;" />
+      <input type="file" id="imageInput" accept="image/*" />
       <canvas id="snapshot" style="display:none;border-radius: 12px;"></canvas>
       <button id="capBtn" aria-label="insert photo">Capture photo 📸 </button>
       <button id="typeBtn" style="display:none;" aria-label="insert photo">Detect photo type 🔍</button>
@@ -317,6 +318,7 @@
       </p>
     </section>
   </main>
+
 
   <script>
     // --- Shared DOM elements ---
