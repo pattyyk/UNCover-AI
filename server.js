@@ -67,88 +67,46 @@ app.post('/detect', async (req, res) => {
   }
 });
 
-// === 2. IMAGE DETECTION VIA COPYLEAKS ===
-app.get('/copyleaks-token', async (req, res) => {
-  try {
-    const { COPYLEAKS_EMAIL, COPYLEAKS_API_KEY } = process.env;
-    const authRes = await fetch('https://id.copyleaks.com/v3/account/login/api', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: COPYLEAKS_EMAIL, key: COPYLEAKS_API_KEY })
-    });
-    if (!authRes.ok) {
-      const error = await authRes.text();
-      return res.status(401).json({ error });
-    }
-    const data = await authRes.json();
-    res.json({ access_token: data.access_token });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to get Copyleaks token' });
-  }
-});
+// === 2. IMAGE DETECTION VIA CLARIFAI ===
+
 app.post('/image-detect', async (req, res) => {
   try {
     const { image } = req.body;
     if (!image) return res.status(400).json({ error: 'Missing image' });
 
     const base64 = image.includes(',') ? image.split(',')[1] : image;
-    if (!base64 || base64.length < 100) {
-      return res.status(400).json({ error: 'Invalid or empty image data.' });
-    }
 
-    // 1. Authenticate to get fresh token
-    const authRes = await fetch('https://id.copyleaks.com/v3/account/login/api', {
+    const response = await fetch('https://api.sightengine.com/1.0/check.json', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: process.env.COPYLEAKS_EMAIL,
-        key: process.env.COPYLEAKS_API_KEY
-      }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        'api_user': process.env.SIGHTENGINE_USER,
+        'api_secret': process.env.SIGHTENGINE_SECRET,
+        'models': 'ai',
+        'media': `data:image/jpeg;base64,${base64}`
+      })
     });
 
-    if (!authRes.ok) {
-      const errMsg = await authRes.text();
-      return res.status(401).json({ error: 'Copyleaks authentication failed', details: errMsg });
+    const result = await response.json();
+
+    if (result.status !== 'success') {
+      return res.status(500).json({ error: result.error?.message || 'Sightengine error' });
     }
 
-    const { access_token } = await authRes.json();
-
-    // 2. Use the access_token to call detection API
-    const apiRes = await fetch('https://api.copyleaks.com/v3/misc/detect', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${access_token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ base64 }),
-    });
-
-    const rawText = await apiRes.text();
-    console.log('Copyleaks raw response:', rawText);
-
-    let result;
-    try {
-      result = JSON.parse(rawText);
-    } catch {
-      return res.status(500).json({ error: 'Detection JSON parsing error', raw: rawText });
-    }
-
-    if (!apiRes.ok) {
-      return res.status(apiRes.status).json({ error: result.error || 'Detection failed' });
-    }
-
-    // Return simplified detection result
-    const label = result.ai ? 'ai' : 'human';
-    const confidence = result.confidence || 0;
+    // Sightengine returns a `ai.generated` score (0-1)
+    const confidence = Math.round((result.ai.generated || 0) * 100);
+    const label = confidence > 50 ? 'ai' : 'human';
     const icon = label === 'ai' ? '🤖' : '👤';
 
-    return res.json({ label, confidence, icon });
+    res.json({ label, confidence, icon });
   } catch (err) {
-    console.error('Backend error:', err);
-    return res.status(500).json({ error: err.message || 'Internal server error' });
+    console.error('Sightengine error:', err);
+    res.status(500).json({ error: 'Image detection failed' });
   }
 });
 
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Server running on port ${port}`));
 
 
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
