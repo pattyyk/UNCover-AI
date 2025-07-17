@@ -70,8 +70,6 @@ app.post('/detect', async (req, res) => {
 
 // === 2. IMAGE DETECTION ===
 
-import FormData from 'form-data';
-
 app.post('/image-detect', async (req, res) => {
   try {
     const { image } = req.body;
@@ -82,31 +80,40 @@ app.post('/image-detect', async (req, res) => {
       return res.status(400).json({ error: 'Invalid or empty image data.' });
     }
 
+    // Use Node.js native FormData
     const form = new FormData();
     form.append('api_user', process.env.SIGHTENGINE_USER);
     form.append('api_secret', process.env.SIGHTENGINE_SECRET);
     form.append('models', 'properties');
     form.append('media', `data:image/jpeg;base64,${base64}`);
 
+    // Fetch with form-data body and correct headers
     const response = await fetch('https://api.sightengine.com/1.0/check.json', {
       method: 'POST',
       body: form,
-      headers: form.getHeaders()
+      headers: {
+        'Content-Type': `multipart/form-data; boundary=${form.boundary}`
+      }
     });
 
-    const data = await response.json();
-    console.log('Sightengine response:', data);
+    const rawText = await response.text();
+    console.log('Sightengine raw response:', rawText);
 
-    if (!response.ok || data.status !== 'success') {
-      return res.status(500).json({ error: 'Sightengine detection failed', raw: data });
+    let result;
+    try {
+      result = JSON.parse(rawText);
+    } catch {
+      return res.status(500).json({ error: 'Detection JSON parsing error' });
     }
 
-    const isAIGenerated = data.properties?.ai_generated || false;
-    const label = isAIGenerated ? 'ai' : 'human';
-    const confidence = 100; // Sightengine doesn’t return actual % confidence
-    const icon = label === 'ai' ? '🤖' : '👤';
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Sightengine detection failed', raw: result });
+    }
 
-    return res.json({ label, confidence, icon });
+    // You can decide how to interpret the result here
+    // For example, return the whole result for now:
+    return res.json(result);
+
   } catch (err) {
     console.error('Backend error:', err);
     return res.status(500).json({ error: err.message || 'Internal server error' });
