@@ -105,8 +105,7 @@ app.post('/image-detect', async (req, res) => {
   }
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Server running on port ${port}`));
+
 
 
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
