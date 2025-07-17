@@ -189,7 +189,7 @@
 
     inputText.addEventListener('input', () => {
       const text = inputText.value.trim();
-      wordCount.textContent = text === '' ? 0 : text.split(/\s+/).length;
+      wordCount.textContent = text === '' ? 0 : text.split(/\s+/).filter(Boolean).length;
       charCount.textContent = text.length;
     });
 
