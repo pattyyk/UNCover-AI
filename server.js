@@ -154,7 +154,7 @@ app.post('/fake-news-check', async (req, res) => {
         messages: [
           {
             role: 'user',
-            content: `Please evaluate the following article or statement to determine if it may be fake news. Give a verdict ("Likely Real", "Possibly Fake", or "Likely Fake"), a confidence score out of 100, and a short explanation that references reliable sources or reasoning.\n\nText:\n"""${text}"""`
+            content: `Please evaluate the following article or statement to determine if it may be fake news. Give a verdict ("Likely Real", "Possibly Fake", or "Likely Fake"), a confidence score out of 100, and a brief explanation. Text: "${text}"`
           }
         ],
         max_tokens: 1000
@@ -218,6 +218,8 @@ console.log('HUGGINGFACE_API_TOKEN:', !!process.env.HUGGINGFACE_API_TOKEN);
 // === FAKE NEWS ROUTES ===
 app.post('/api/fake-news-check', async (req, res) => {
   const { text } = req.body;
+  if (!text) return res.status(400).json({ error: 'No text provided' }); // FIX: add missing check for "text"
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -244,6 +246,9 @@ app.post('/api/fake-news-check', async (req, res) => {
 
 app.post('/api/fake-news-explain', async (req, res) => {
   const { text, verdict } = req.body;
+  if (!text || !verdict) {
+    return res.status(400).json({ error: 'Missing text or verdict for explanation.' }); // FIX: add missing check for both fields
+  }
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
