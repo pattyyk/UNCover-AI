@@ -71,7 +71,6 @@ app.post('/detect', async (req, res) => {
 // === 2. IMAGE DETECTION ===
 
 import FormData from 'form-data';
-import fetch from 'node-fetch'; // if needed
 
 app.post('/image-detect', async (req, res) => {
   try {
