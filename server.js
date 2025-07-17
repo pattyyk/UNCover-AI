@@ -86,38 +86,59 @@ app.get('/copyleaks-token', async (req, res) => {
     res.status(500).json({ error: 'Failed to get Copyleaks token' });
   }
 });
-
 app.post('/image-detect', async (req, res) => {
   try {
     const { image } = req.body;
     if (!image) return res.status(400).json({ error: 'Missing image' });
 
+    const base64 = image.includes(',') ? image.split(',')[1] : image;
+    if (!base64 || base64.length < 100) {
+      return res.status(400).json({ error: 'Invalid or empty image data.' });
+    }
+
+    // === 1. AUTHENTICATE WITH COPYLEAKS ===
     const authRes = await fetch('https://id.copyleaks.com/v3/account/login/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: process.env.COPYLEAKS_EMAIL, key: process.env.COPYLEAKS_API_KEY })
+      body: JSON.stringify({
+        email: process.env.COPYLEAKS_EMAIL,
+        key: process.env.COPYLEAKS_API_KEY
+      })
     });
 
-    const authText = await authRes.text();
-    let authData;
-    try {
-      authData = JSON.parse(authText);
-    } catch (err) {
-      return res.status(500).json({ error: 'Auth JSON parsing error' });
+    const { access_token } = await authRes.json();
+    if (!access_token) {
+      return res.status(401).json({ error: 'Copyleaks authentication failed' });
     }
 
-    if (!authRes.ok || !authData.access_token) {
-      return res.status(401).json({ error: 'Invalid Copyleaks credentials' });
-    }
-
-    const token = authData.access_token;
-    const base64 = image.split(',')[1] || image;
-
-    const apiRes = await fetch('https://api.copyleaks.com/v3/ai-content-detector/image/base64', {
+    // === 2. SUBMIT IMAGE FOR DETECTION ===
+    const apiRes = await fetch('https://api.copyleaks.com/v3/misc/detect', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${access_token}`,
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ base64 })
     });
+
+    const rawText = await apiRes.text();
+    console.log('Copyleaks raw response:', rawText); // debug log
+
+    let result;
+    try {
+      result = JSON.parse(rawText);
+    } catch (err) {
+      console.error('JSON parse failed:', rawText);
+      return res.status(500).json({ error: 'Detection JSON parsing error' });
+    }
+
+    res.json(result);
+  } catch (err) {
+    console.error('Backend error:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
 
     const rawText = await apiRes.text();
     let result;
