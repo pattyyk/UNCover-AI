@@ -170,9 +170,11 @@ app.post('/fake-news-check', async (req, res) => {
 
     const rawOutput = response.data?.content?.[0]?.text || 'No response from Claude';
     res.json({ verdict: rawOutput });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+} catch (error) {
+  console.error('Claude API error:', error?.response?.data || error.message);
+  res.status(500).json({ error: error?.response?.data || error.message });
+}
+
 });
 
 // === 4. EXPLANATION FOR FAKE NEWS VERDICT ===
