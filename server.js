@@ -121,36 +121,26 @@ app.post('/image-detect', async (req, res) => {
       body: JSON.stringify({ base64 })
     });
 
-    const rawText = await apiRes.text();
-    console.log('Copyleaks raw response:', rawText); // debug log
+const rawText = await apiRes.text();
+console.log('Copyleaks raw response:', rawText); // Debug log
 
-    let result;
-    try {
-      result = JSON.parse(rawText);
-    } catch (err) {
-      console.error('JSON parse failed:', rawText);
-      return res.status(500).json({ error: 'Detection JSON parsing error' });
-    }
+let result;
+try {
+  result = JSON.parse(rawText);
+} catch (err) {
+  console.error('JSON parse failed:', rawText);
+  return res.status(500).json({ error: 'Detection JSON parsing error' });
+}
 
-    res.json(result);
-  } catch (err) {
-    console.error('Backend error:', err);
-    res.status(500).json({ error: err.message || 'Internal server error' });
-  }
-});
+// Check if response is valid and contains expected fields
+if (!apiRes.ok || typeof result.ai === 'undefined') {
+  console.error('Invalid response from Copyleaks:', result);
+  return res.status(500).json({ error: 'Invalid response from Copyleaks' });
+}
 
+// Success
+res.json(result);
 
-    const rawText = await apiRes.text();
-    let result;
-    try {
-      result = JSON.parse(rawText);
-    } catch (err) {
-      return res.status(500).json({ error: 'Detection JSON parsing error' });
-    }
-
-    if (!apiRes.ok || typeof result.ai === 'undefined') {
-      return res.status(500).json({ error: 'Invalid response from Copyleaks' });
-    }
 
     const label = result.ai ? 'ai' : 'human';
     const confidence = result.confidence || 0;
