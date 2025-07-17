@@ -96,29 +96,31 @@ app.post('/image-detect', async (req, res) => {
       return res.status(400).json({ error: 'Invalid or empty image data.' });
     }
 
-    // 1. Get fresh token dynamically (same logic as in /copyleaks-token)
+    // 1. Authenticate to get fresh token
     const authRes = await fetch('https://id.copyleaks.com/v3/account/login/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: process.env.COPYLEAKS_EMAIL,
         key: process.env.COPYLEAKS_API_KEY
-      })
+      }),
     });
+
     if (!authRes.ok) {
-      const error = await authRes.text();
-      return res.status(401).json({ error });
+      const errMsg = await authRes.text();
+      return res.status(401).json({ error: 'Copyleaks authentication failed', details: errMsg });
     }
+
     const { access_token } = await authRes.json();
 
-    // 2. Use fresh token to call Copyleaks detection
+    // 2. Use the access_token to call detection API
     const apiRes = await fetch('https://api.copyleaks.com/v3/misc/detect', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${access_token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ base64 })
+      body: JSON.stringify({ base64 }),
     });
 
     const rawText = await apiRes.text();
@@ -127,16 +129,15 @@ app.post('/image-detect', async (req, res) => {
     let result;
     try {
       result = JSON.parse(rawText);
-    } catch (err) {
-      console.error('JSON parse failed:', rawText);
-      return res.status(500).json({ error: 'Detection JSON parsing error' });
+    } catch {
+      return res.status(500).json({ error: 'Detection JSON parsing error', raw: rawText });
     }
 
     if (!apiRes.ok) {
       return res.status(apiRes.status).json({ error: result.error || 'Detection failed' });
     }
 
-    // Build simplified response
+    // Return simplified detection result
     const label = result.ai ? 'ai' : 'human';
     const confidence = result.confidence || 0;
     const icon = label === 'ai' ? '🤖' : '👤';
@@ -147,6 +148,7 @@ app.post('/image-detect', async (req, res) => {
     return res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
+
 
 
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
