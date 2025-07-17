@@ -627,11 +627,11 @@ document.getElementById('imageInput').addEventListener('change', (e) => {
       });
     }
 
-  typeBtn.addEventListener('click', async () => {
+ typeBtn.addEventListener('click', async () => {
   console.log("Button clicked");
 
   if (!currentImageFile) {
-    alert('No image uploaded or captured!');
+    alert('No image uploaded!');
     return;
   }
 
@@ -639,16 +639,17 @@ document.getElementById('imageInput').addEventListener('change', (e) => {
   typeBtn.textContent = 'Detecting...';
 
   try {
-    // Convert base64 data URL to Blob
-    const imageBlob = dataURLtoBlob(currentImageFile);
-
     const formData = new FormData();
-    formData.append('media', imageBlob, 'upload.jpg'); // 'media' matches backend expected key
+    formData.append('image', currentImageFile);
+
+    console.log("Sending to backend...");
 
     const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
       method: 'POST',
       body: formData
     });
+
+    console.log("Received response:", response);
 
     if (!response.ok) {
       const text = await response.text();
@@ -656,6 +657,8 @@ document.getElementById('imageInput').addEventListener('change', (e) => {
     }
 
     const data = await response.json();
+    console.log("Parsed data:", data);
+
     const label = data.label || 'unknown';
     const confidence = isNaN(data.confidence) ? 0 : data.confidence;
     const icon = label === 'ai' ? '🤖' : label === 'human' ? '👤' : '❓';
