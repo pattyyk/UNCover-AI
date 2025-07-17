@@ -96,18 +96,33 @@ app.post('/image-detect', async (req, res) => {
       return res.status(400).json({ error: 'Invalid or empty image data.' });
     }
 
-    // Use existing token directly in Authorization header
+    // 1. Get fresh token dynamically (same logic as in /copyleaks-token)
+    const authRes = await fetch('https://id.copyleaks.com/v3/account/login/api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: process.env.COPYLEAKS_EMAIL,
+        key: process.env.COPYLEAKS_API_KEY
+      })
+    });
+    if (!authRes.ok) {
+      const error = await authRes.text();
+      return res.status(401).json({ error });
+    }
+    const { access_token } = await authRes.json();
+
+    // 2. Use fresh token to call Copyleaks detection
     const apiRes = await fetch('https://api.copyleaks.com/v3/misc/detect', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.COPYLEAKS_TOKEN}`,
+        'Authorization': `Bearer ${access_token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ base64 })
     });
 
     const rawText = await apiRes.text();
-    console.log('Copyleaks raw response:', rawText); // debug log
+    console.log('Copyleaks raw response:', rawText);
 
     let result;
     try {
@@ -127,12 +142,12 @@ app.post('/image-detect', async (req, res) => {
     const icon = label === 'ai' ? '🤖' : '👤';
 
     return res.json({ label, confidence, icon });
-
   } catch (err) {
     console.error('Backend error:', err);
     return res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
+
 
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
 app.post('/fake-news-check', async (req, res) => {
