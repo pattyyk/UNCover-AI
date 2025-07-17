@@ -3,7 +3,10 @@ import fetch from 'node-fetch';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import axios from 'axios';
-
+import FormData from 'form-data';
+import { Buffer } from 'buffer';
+import multer from 'multer';
+const upload = multer();
 
 dotenv.config();
 
@@ -70,21 +73,20 @@ app.post('/detect', async (req, res) => {
 
 // === 2. IMAGE DETECTION ===
 
-import FormData from 'form-data';
-import { Buffer } from 'buffer';
 
-import multer from 'multer';
-const upload = multer();
 
-app.post('/image-detect', upload.single('media'), async (req, res) => {
+app.post('/image-detect', upload.single('image'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: 'Missing image file' });
+    if (!req.file) {
+      return res.status(400).json({ error: 'Missing image file' });
+    }
 
+    const buffer = req.file.buffer;
     const form = new FormData();
     form.append('api_user', process.env.SIGHTENGINE_USER);
     form.append('api_secret', process.env.SIGHTENGINE_SECRET);
     form.append('models', 'genai');
-    form.append('media', req.file.buffer, { filename: req.file.originalname });
+    form.append('media', buffer, { filename: 'upload.jpg', contentType: 'image/jpeg' });
 
     const response = await fetch('https://api.sightengine.com/1.0/check.json', {
       method: 'POST',
@@ -104,6 +106,7 @@ app.post('/image-detect', upload.single('media'), async (req, res) => {
     res.status(500).json({ error: 'Image detection failed' });
   }
 });
+
 
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
 app.post('/fake-news-check', async (req, res) => {
