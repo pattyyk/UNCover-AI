@@ -77,15 +77,17 @@ app.post('/image-detect', async (req, res) => {
     const base64 = image.includes(',') ? image.split(',')[1] : image;
 
     const response = await fetch('https://api.sightengine.com/1.0/check.json', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        'api_user': process.env.SIGHTENGINE_USER,
-        'api_secret': process.env.SIGHTENGINE_SECRET,
-        'models': 'ai',
-        'media': `data:image/jpeg;base64,${base64}`
-      })
-    });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded'
+  },
+  body: new URLSearchParams({
+    'api_user': process.env.SIGHTENGINE_USER,
+    'api_secret': process.env.SIGHTENGINE_SECRET,
+    'models': 'properties',
+    'media': `data:image/jpeg;base64,${base64}`
+  })
+});
 
     const result = await response.json();
 
