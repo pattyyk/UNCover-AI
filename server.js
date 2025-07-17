@@ -73,24 +73,18 @@ app.post('/detect', async (req, res) => {
 import FormData from 'form-data';
 import { Buffer } from 'buffer';
 
-app.post('/image-detect', async (req, res) => {
-  try {
-    const { image } = req.body;
-    if (!image) return res.status(400).json({ error: 'Missing image' });
+import multer from 'multer';
+const upload = multer();
 
-    const base64 = image.includes(',') ? image.split(',')[1] : image;
-    if (!base64 || base64.length < 100) {
-      return res.status(400).json({ error: 'Invalid or empty image data.' });
-    }
+app.post('/image-detect', upload.single('media'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Missing image file' });
 
     const form = new FormData();
     form.append('api_user', process.env.SIGHTENGINE_USER);
     form.append('api_secret', process.env.SIGHTENGINE_SECRET);
     form.append('models', 'genai');
-
-    // Convert base64 to a Buffer and attach as a file
-    const buffer = Buffer.from(base64, 'base64');
-    form.append('media', buffer, { filename: 'upload.jpg', contentType: 'image/jpeg' });
+    form.append('media', req.file.buffer, { filename: req.file.originalname });
 
     const response = await fetch('https://api.sightengine.com/1.0/check.json', {
       method: 'POST',
@@ -110,7 +104,6 @@ app.post('/image-detect', async (req, res) => {
     res.status(500).json({ error: 'Image detection failed' });
   }
 });
-
 
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
 app.post('/fake-news-check', async (req, res) => {
