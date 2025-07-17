@@ -150,7 +150,7 @@ app.post('/fake-news-check', async (req, res) => {
     const response = await axios.post(
       'https://api.anthropic.com/v1/messages',
       {
-        model: 'claude-3.5-sonnet-20240620',
+        model: 'claude-3-5-sonnet-20240620',
         messages: [
           {
             role: 'user',
@@ -188,7 +188,7 @@ app.post('/api/fake-news-explain', async (req, res) => {
     const response = await axios.post(
       'https://api.anthropic.com/v1/messages',
       {
-        model: 'claude-3.5-sonnet-20240620',
+        model: 'claude-3-5-sonnet-20240620',
         messages: [
           {
             role: 'user',
