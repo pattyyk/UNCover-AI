@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import axios from 'axios';
+import FormData from 'form-data';
 
 dotenv.config();
 
@@ -67,7 +68,10 @@ app.post('/detect', async (req, res) => {
   }
 });
 
-// === 2. IMAGE DETECTION VIA CLARIFAI ===
+// === 2. IMAGE DETECTION ===
+
+import FormData from 'form-data';
+import fetch from 'node-fetch'; // if needed
 
 app.post('/image-detect', async (req, res) => {
   try {
@@ -75,39 +79,40 @@ app.post('/image-detect', async (req, res) => {
     if (!image) return res.status(400).json({ error: 'Missing image' });
 
     const base64 = image.includes(',') ? image.split(',')[1] : image;
-
-    const response = await fetch('https://api.sightengine.com/1.0/check.json', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/x-www-form-urlencoded'
-  },
-  body: new URLSearchParams({
-    'api_user': process.env.SIGHTENGINE_USER,
-    'api_secret': process.env.SIGHTENGINE_SECRET,
-    'models': 'properties',
-    'media': `data:image/jpeg;base64,${base64}`
-  })
-});
-
-    const result = await response.json();
-
-    if (result.status !== 'success') {
-      return res.status(500).json({ error: result.error?.message || 'Sightengine error' });
+    if (!base64 || base64.length < 100) {
+      return res.status(400).json({ error: 'Invalid or empty image data.' });
     }
 
-    // Sightengine returns a `ai.generated` score (0-1)
-    const confidence = Math.round((result.ai.generated || 0) * 100);
-    const label = confidence > 50 ? 'ai' : 'human';
+    const form = new FormData();
+    form.append('api_user', process.env.SIGHTENGINE_USER);
+    form.append('api_secret', process.env.SIGHTENGINE_SECRET);
+    form.append('models', 'properties');
+    form.append('media', `data:image/jpeg;base64,${base64}`);
+
+    const response = await fetch('https://api.sightengine.com/1.0/check.json', {
+      method: 'POST',
+      body: form,
+      headers: form.getHeaders()
+    });
+
+    const data = await response.json();
+    console.log('Sightengine response:', data);
+
+    if (!response.ok || data.status !== 'success') {
+      return res.status(500).json({ error: 'Sightengine detection failed', raw: data });
+    }
+
+    const isAIGenerated = data.properties?.ai_generated || false;
+    const label = isAIGenerated ? 'ai' : 'human';
+    const confidence = 100; // Sightengine doesn’t return actual % confidence
     const icon = label === 'ai' ? '🤖' : '👤';
 
-    res.json({ label, confidence, icon });
+    return res.json({ label, confidence, icon });
   } catch (err) {
-    console.error('Sightengine error:', err);
-    res.status(500).json({ error: 'Image detection failed' });
+    console.error('Backend error:', err);
+    return res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
-
-
 
 
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
