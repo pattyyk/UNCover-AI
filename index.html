@@ -343,7 +343,7 @@
     const canvas = document.getElementById('snapshot');
     const typeBtn = document.getElementById('typeBtn');
     let stream = null;
-    let currentImageData = null;
+    let currentImageFile = null;
 
     // Fake News Tab
     const newsInput = document.getElementById('newsInput');
@@ -508,7 +508,7 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
 
-      currentImageData = canvas.toDataURL('image/jpeg'); // Store image
+      currentImageFile = canvas.toDataURL('image/jpeg'); // Store image
       // Show snapshot
       canvas.style.display = 'block';
 
@@ -542,8 +542,8 @@
       if (file) {
         const reader = new FileReader();
         reader.onload = e => {
-          currentImageData = e.target.result; // Store image
-          imagePreview.src = currentImageData;
+          currentImageFile = e.target.result; // Store image
+          imagePreview.src = currentImageFile;
           imagePreview.style.display = 'block';
           typeBtn.disabled = false;
           typeBtn.style.display = 'inline-block';
@@ -559,6 +559,23 @@
         capBtn.style.display = 'none';
       }
     });
+
+  
+
+const imagePreview = document.getElementById('imagePreview');
+
+document.getElementById('imageInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    currentImageFile = file;
+    const reader = new FileReader();
+    reader.onload = () => {
+      imagePreview.src = reader.result;
+      imagePreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
 
     // Resize image before sending to backend
     function resizeImage(base64, maxWidth = 800, maxHeight = 800) {
