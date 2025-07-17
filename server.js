@@ -15,7 +15,7 @@ app.listen(port, () => {
 
 app.use(cors({
   origin: 'https://pattyyk.github.io',
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
