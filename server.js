@@ -275,4 +275,3 @@ app.post('/api/fake-news-explain', async (req, res) => {
   }
 });
 
-console.log("hello world")
