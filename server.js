@@ -84,7 +84,7 @@ app.post('/image-detect', async (req, res) => {
     const form = new FormData();
     form.append('api_user', process.env.SIGHTENGINE_USER);
     form.append('api_secret', process.env.SIGHTENGINE_SECRET);
-    form.append('models', 'properties');
+    form.append('models', 'genai');
     form.append('media', `data:image/jpeg;base64,${base64}`);
 
     // Fetch with form-data body and correct headers
