@@ -70,6 +70,8 @@ app.post('/detect', async (req, res) => {
 
 // === 2. IMAGE DETECTION ===
 
+import FormData from 'form-data'; // if not already imported
+
 app.post('/image-detect', async (req, res) => {
   try {
     const { image } = req.body;
@@ -80,43 +82,29 @@ app.post('/image-detect', async (req, res) => {
       return res.status(400).json({ error: 'Invalid or empty image data.' });
     }
 
-    // Use Node.js native FormData
     const form = new FormData();
     form.append('api_user', process.env.SIGHTENGINE_USER);
     form.append('api_secret', process.env.SIGHTENGINE_SECRET);
-    form.append('models', 'genai');
+    form.append('models', 'genai'); // correct model name for AI detection
     form.append('media', `data:image/jpeg;base64,${base64}`);
 
-    // Fetch with form-data body and correct headers
     const response = await fetch('https://api.sightengine.com/1.0/check.json', {
       method: 'POST',
       body: form,
-      headers: {
-        'Content-Type': `multipart/form-data; boundary=${form.boundary}`
-      }
+      headers: form.getHeaders(), // <-- getHeaders() provides the correct Content-Type with boundary
     });
 
-    const rawText = await response.text();
-    console.log('Sightengine raw response:', rawText);
-
-    let result;
-    try {
-      result = JSON.parse(rawText);
-    } catch {
-      return res.status(500).json({ error: 'Detection JSON parsing error' });
-    }
+    const result = await response.json();
 
     if (!response.ok) {
       return res.status(response.status).json({ error: 'Sightengine detection failed', raw: result });
     }
 
-    // You can decide how to interpret the result here
-    // For example, return the whole result for now:
-    return res.json(result);
-
+    // Return result or process it further here
+    res.json(result);
   } catch (err) {
     console.error('Backend error:', err);
-    return res.status(500).json({ error: err.message || 'Internal server error' });
+    res.status(500).json({ error: 'Image detection failed' });
   }
 });
 
