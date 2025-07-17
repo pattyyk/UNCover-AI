@@ -121,25 +121,16 @@ app.post('/image-detect', async (req, res) => {
       return res.status(apiRes.status).json({ error: result.error || 'Detection failed' });
     }
 
-    res.json(result);
-  } catch (err) {
-    console.error('Backend error:', err);
-    res.status(500).json({ error: err.message || 'Internal server error' });
-  }
-});
-
-
-// Success
-res.json(result);
-
-
+    // Build simplified response
     const label = result.ai ? 'ai' : 'human';
     const confidence = result.confidence || 0;
     const icon = label === 'ai' ? '🤖' : '👤';
 
-    res.json({ label, confidence, icon });
+    return res.json({ label, confidence, icon });
+
   } catch (err) {
-    res.status(500).json({ error: 'Image detection failed' });
+    console.error('Backend error:', err);
+    return res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
 
