@@ -676,14 +676,6 @@
     imageConfidenceBar.style.width = `${confidence}%`;
     imageConfidenceBar.textContent = `${confidence}%`;
 
-  } catch (err) {
-    console.error('Error detecting image type:', err);
-    alert('Detection failed: ' + err.message);
-  } finally {
-    typeBtn.disabled = false;
-    typeBtn.textContent = 'Detect Image Type';
-  }
-});
 
 
 
