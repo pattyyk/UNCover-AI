@@ -600,7 +600,8 @@ document.addEventListener("DOMContentLoaded", () => {
       imageResultIcon.textContent = isAI ? '🤖' : '👤';
       imageConfidenceWrapper.style.display = 'block';
       imageConfidenceBar.style.width = `${confidence}%`;
-   
+     console.log('Full detection result:', resultData);
+
 
     } catch (err) {
       console.error('Fetch error:', err);
