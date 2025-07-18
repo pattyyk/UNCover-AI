@@ -75,22 +75,7 @@ app.post('/detect', async (req, res) => {
 
 
 
-import express from 'express';
-import fetch from 'node-fetch';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import multer from 'multer';
-import FormData from 'form-data';
 
-dotenv.config();
-const app = express();
-const upload = multer();
-
-app.use(cors({
-  origin: 'https://pattyyk.github.io',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
 
 app.post('/image-detect', upload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Missing image file' });
