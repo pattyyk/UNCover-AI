@@ -77,39 +77,45 @@ app.post('/detect', async (req, res) => {
 
 
 
-app.post('/image-detect', upload.single('image'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Missing image file' });
+app.post('/image-detect', upload.single('media'), async (req, res) => {
+  if (!req.file) {
+    console.error('No file uploaded in the media field');
+    return res.status(400).json({ error: 'Missing image file (field name should be "media")' });
+  }
 
   try {
     const form = new FormData();
     form.append('api_user', process.env.SIGHTENGINE_USER);
     form.append('api_secret', process.env.SIGHTENGINE_SECRET);
-    form.append('models', 'genai'); // model specified by Sightengine for AI detection :contentReference[oaicite:2]{index=2}
-    form.append('media', req.file.buffer, { filename: 'upload.jpg', contentType: 'image/jpeg' });
+    form.append('models', 'genai');
+    form.append('media', req.file.buffer, {
+      filename: req.file.originalname || 'upload.jpg',
+      contentType: req.file.mimetype || 'image/jpeg',
+    });
 
     const response = await fetch('https://api.sightengine.com/1.0/check.json', {
       method: 'POST',
       body: form,
-      headers: form.getHeaders()
+      headers: form.getHeaders(),
     });
 
     const result = await response.json();
+
     if (!response.ok) {
+      console.error('Sightengine API returned error:', result);
       return res.status(response.status).json({ error: 'Sightengine detection failed', raw: result });
     }
 
-    // Response structure includes `result.type.ai_generated` field
+    // Send back the AI detection result (adjust based on actual API response structure)
     res.json({
       ai_generated: result.type?.ai_generated,
-      raw: result
+      raw: result,
     });
-
   } catch (err) {
-    console.error('Backend error:', err);
-    res.status(500).json({ error: 'Image detection failed' });
+    console.error('Backend error in /image-detect:', err);
+    res.status(500).json({ error: 'Image detection failed', details: err.message });
   }
 });
-
 
 
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
