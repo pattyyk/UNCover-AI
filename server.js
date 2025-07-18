@@ -100,42 +100,55 @@ app.post('/image-detect', upload.single('media'), async (req, res) => {
     }
 
     // Extract numeric confidence and label
-    let confidence = 0;
-    let label = "unknown";
-    let icon = "❓";
-    // Sightengine's ai_generated: true/false/"likely"/"unknown"/"no"
-    if (result.type && typeof result.type.ai_generated !== "undefined") {
-      if (result.type.ai_generated === true || result.type.ai_generated === "true") {
-        confidence = 80;
-        label = "ai";
-        icon = "🤖";
-      } else if (result.type.ai_generated === false || result.type.ai_generated === "false" || result.type.ai_generated === "no") {
-        confidence = 10;
-        label = "human";
-        icon = "👤";
-      } else if (result.type.ai_generated === "likely") {
-        confidence = 60;
-        label = "ai";
-        icon = "🤖";
-      } else if (result.type.ai_generated === "unknown") {
-        confidence = 0;
-        label = "unknown";
-        icon = "❓";
-      }
-    }
-    // If Sightengine provides a real confidence score, use it
-    if (result.type && typeof result.type.ai_generated_score === "number") {
-      confidence = Math.round(result.type.ai_generated_score * 100);
-      label = confidence > 50 ? "ai" : "human";
-      icon = label === "ai" ? "🤖" : "👤";
-    }
+   let confidence = 0;
+let label = "unknown";
+let icon = "❓";
 
-    res.json({
-      label,
-      confidence,
-      icon,
-      raw: result,
-    });
+if (result.type && typeof result.type.ai_generated !== "undefined") {
+  if (typeof result.type.ai_generated === "boolean" || typeof result.type.ai_generated === "string") {
+    if (result.type.ai_generated === true || result.type.ai_generated === "true") {
+      confidence = 80;
+      label = "ai";
+      icon = "🤖";
+    } else if (
+      result.type.ai_generated === false ||
+      result.type.ai_generated === "false" ||
+      result.type.ai_generated === "no"
+    ) {
+      confidence = 10;
+      label = "human";
+      icon = "👤";
+    } else if (result.type.ai_generated === "likely") {
+      confidence = 60;
+      label = "ai";
+      icon = "🤖";
+    } else if (result.type.ai_generated === "unknown") {
+      confidence = 0;
+      label = "unknown";
+      icon = "❓";
+    }
+  } else if (typeof result.type.ai_generated === "number") {
+    // Handle numeric confidence between 0 and 1
+    confidence = Math.round(result.type.ai_generated * 100);
+    label = confidence > 50 ? "ai" : "human";
+    icon = label === "ai" ? "🤖" : "👤";
+  }
+}
+
+// If Sightengine provides a real confidence score, use it
+if (result.type && typeof result.type.ai_generated_score === "number") {
+  confidence = Math.round(result.type.ai_generated_score * 100);
+  label = confidence > 50 ? "ai" : "human";
+  icon = label === "ai" ? "🤖" : "👤";
+}
+
+res.json({
+  label,
+  confidence,
+  icon,
+  raw: result,
+});
+
   } catch (err) {
     res.status(500).json({ error: 'Image detection failed', details: err.message });
   }
