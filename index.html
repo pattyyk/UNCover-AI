@@ -629,6 +629,7 @@
   }
 
   // Detect image type
+     let resultData = null;
  typeBtn.addEventListener('click', async () => {
   console.log('Detect Image clicked');
 
@@ -637,7 +638,7 @@
 
   const formData = new FormData();
   formData.append('media', currentImageFile);
-
+  
   try {
     const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
       method: 'POST',
