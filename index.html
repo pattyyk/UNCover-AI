@@ -355,7 +355,7 @@
     const canvas = document.getElementById('snapshot');
     const typeBtn = document.getElementById('typeBtn');
     let stream = null;
-     const resultData = await response.json();
+     
     let currentImageFile = null;
 
     // Fake News Tab
@@ -644,7 +644,7 @@
       body: formData
     });
     console.log('Response status:', response.status);
-
+    const resultData = await response.json();
    
     console.log('Response data:', resultData);
 
