@@ -587,7 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const resultData = await response.json();
       if (!response.ok) throw new Error(resultData.error || 'Detection failed');
 
-      const confidence = resultData && typeof resultData.confidence === 'number' ? resultData.confidence : 0;
+      const confidence = resultData?.media?.ai?.confidence ?? 0;
       const isAI = confidence > 50;
 
       // Hide text detection result if visible
@@ -600,7 +600,7 @@ document.addEventListener("DOMContentLoaded", () => {
       imageResultIcon.textContent = isAI ? '🤖' : '👤';
       imageConfidenceWrapper.style.display = 'block';
       imageConfidenceBar.style.width = `${confidence}%`;
-      imageConfidenceBar.textContent = `${confidence}%`;
+   
 
     } catch (err) {
       console.error('Fetch error:', err);
