@@ -557,11 +557,13 @@
   }
 
   // Detect image type
+document.addEventListener("DOMContentLoaded", () => {
   typeBtn.addEventListener('click', async () => {
     if (!currentImageFile) {
       alert('No image to detect!');
       return;
     }
+
     // If it's a data URL, convert to File
     let file;
     if (typeof currentImageFile === "string" && currentImageFile.startsWith("data:")) {
@@ -572,15 +574,19 @@
       alert('Invalid image format.');
       return;
     }
+
     const formData = new FormData();
     formData.append('media', file);
+
     try {
       const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
         method: 'POST',
         body: formData
       });
+
       const resultData = await response.json();
       if (!response.ok) throw new Error(resultData.error || 'Detection failed');
+
       const confidence = resultData && typeof resultData.confidence === 'number' ? resultData.confidence : 0;
       const isAI = confidence > 50;
 
@@ -595,11 +601,14 @@
       imageConfidenceWrapper.style.display = 'block';
       imageConfidenceBar.style.width = `${confidence}%`;
       imageConfidenceBar.textContent = `${confidence}%`;
+
     } catch (err) {
       console.error('Fetch error:', err);
       alert(err.message || 'Image detection failed');
     }
   });
+});
+
 
   // --- Fake News Tab Logic ---
   newsCheckBtn.addEventListener('click', async () => {
