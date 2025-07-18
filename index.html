@@ -494,22 +494,33 @@
     }
   });
 
-  capBtn.addEventListener('click', () => {
-    canvas.width = camera.videoWidth;
-    canvas.height = camera.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
-    currentImageFile = canvas.toDataURL('image/jpeg');
-    canvas.style.display = 'block';
-    camera.style.display = 'none';
-    capBtn.style.display = 'none';
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      stream = null;
-    }
-    typeBtn.disabled = false;
-    typeBtn.style.display = 'inline-block';
-  });
+capBtn.addEventListener('click', () => {
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = camera.videoWidth;
+  canvas.height = camera.videoHeight;
+
+  if (camera.videoWidth === 0 || camera.videoHeight === 0) {
+    alert("Camera not ready. Try again.");
+    return;
+  }
+
+  ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
+  currentImageFile = canvas.toDataURL('image/jpeg');
+
+  canvas.style.display = 'block';
+  camera.style.display = 'none';
+  capBtn.style.display = 'none';
+
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+
+  imagePreview.style.display = 'none';
+  typeBtn.disabled = false;
+  typeBtn.style.display = 'inline-block';
+});
 
   imgBtn.addEventListener('click', () => {
     if (stream) {
