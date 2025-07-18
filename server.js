@@ -4,7 +4,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import axios from 'axios';
 import FormData from 'form-data';
-import { Buffer } from 'buffer';
 import multer from 'multer';
 const upload = multer();
 
@@ -12,9 +11,6 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
 
 app.use(cors({
   origin: 'https://pattyyk.github.io',
@@ -23,6 +19,10 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: '5mb' }));
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
 
 // === 1. AI TEXT DETECTION (HuggingFace) ===
 app.post('/detect', async (req, res) => {
@@ -72,11 +72,6 @@ app.post('/detect', async (req, res) => {
 });
 
 // === 2. IMAGE DETECTION ===
-
-
-
-
-
 app.post('/image-detect', upload.single('media'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Missing image file (field name should be "media")' });
@@ -104,17 +99,17 @@ app.post('/image-detect', upload.single('media'), async (req, res) => {
       return res.status(response.status).json({ error: 'Sightengine detection failed', raw: result });
     }
 
-    // NEW: Extract numeric confidence and label
+    // Extract numeric confidence and label
     let confidence = 0;
     let label = "unknown";
     let icon = "❓";
+    // Sightengine's ai_generated: true/false/"likely"/"unknown"/"no"
     if (result.type && typeof result.type.ai_generated !== "undefined") {
-      // Sightengine's ai_generated: true/false/"likely"/"unknown"
       if (result.type.ai_generated === true || result.type.ai_generated === "true") {
         confidence = 80;
         label = "ai";
         icon = "🤖";
-      } else if (result.type.ai_generated === false || result.type.ai_generated === "false") {
+      } else if (result.type.ai_generated === false || result.type.ai_generated === "false" || result.type.ai_generated === "no") {
         confidence = 10;
         label = "human";
         icon = "👤";
@@ -122,13 +117,18 @@ app.post('/image-detect', upload.single('media'), async (req, res) => {
         confidence = 60;
         label = "ai";
         icon = "🤖";
-      } else {
+      } else if (result.type.ai_generated === "unknown") {
         confidence = 0;
         label = "unknown";
         icon = "❓";
       }
     }
-    // If Sightengine provides a real confidence score, use it instead
+    // If Sightengine provides a real confidence score, use it
+    if (result.type && typeof result.type.ai_generated_score === "number") {
+      confidence = Math.round(result.type.ai_generated_score * 100);
+      label = confidence > 50 ? "ai" : "human";
+      icon = label === "ai" ? "🤖" : "👤";
+    }
 
     res.json({
       label,
@@ -140,6 +140,7 @@ app.post('/image-detect', upload.single('media'), async (req, res) => {
     res.status(500).json({ error: 'Image detection failed', details: err.message });
   }
 });
+
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
 app.post('/fake-news-check', async (req, res) => {
   const { text } = req.body;
@@ -153,7 +154,7 @@ app.post('/fake-news-check', async (req, res) => {
         messages: [
           {
             role: 'user',
-            content: `Please evaluate the following article or statement to determine if it may be fake news. Give a verdict ("Likely Real", "Possibly Fake", or "Likely Fake"), a confidence score out of 100, and a brief explanation. Text: "${text}"`
+            content: `Please evaluate the following article or statement to determine if it may be fake news. Give a verdict ("Likely Real", "Possibly Fake", or "Likely Fake"), a confidence score out of 100, and a one sentence rationale.\n\nText:\n${text}`
           }
         ],
         max_tokens: 1000
@@ -169,11 +170,10 @@ app.post('/fake-news-check', async (req, res) => {
 
     const rawOutput = response.data?.content?.[0]?.text || 'No response from Claude';
     res.json({ verdict: rawOutput });
-} catch (error) {
-  console.error('Claude API error:', error?.response?.data || error.message);
-  res.status(500).json({ error: error?.response?.data || error.message });
-}
-
+  } catch (error) {
+    console.error('Claude API error:', error?.response?.data || error.message);
+    res.status(500).json({ error: error?.response?.data || error.message });
+  }
 });
 
 // === 4. EXPLANATION FOR FAKE NEWS VERDICT ===
@@ -215,64 +215,3 @@ app.post('/api/fake-news-explain', async (req, res) => {
 console.log('Starting server...');
 console.log('PORT:', port);
 console.log('HUGGINGFACE_API_TOKEN:', !!process.env.HUGGINGFACE_API_TOKEN);
-
-// === FAKE NEWS ROUTES ===
-app.post('/api/fake-news-check', async (req, res) => {
-  const { text } = req.body;
-  if (!text) return res.status(400).json({ error: 'No text provided' }); // FIX: add missing check for "text"
-
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': process.env.CLAUDE_API_KEY,
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3.5-sonnet-20240620',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: `Is the following text fake news? Respond with a clear answer: ${text}` }]
-      })
-    });
-
-    const data = await response.json();
-    const content = data?.content?.[0]?.text || 'No verdict returned.';
-    res.json({ verdict: content });
-  } catch (err) {
-    console.error('Error checking fake news:', err);
-    res.status(500).json({ error: 'Fake news check failed.' });
-  }
-});
-
-app.post('/api/fake-news-explain', async (req, res) => {
-  const { text, verdict } = req.body;
-  if (!text || !verdict) {
-    return res.status(400).json({ error: 'Missing text or verdict for explanation.' }); // FIX: add missing check for both fields
-  }
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': process.env.CLAUDE_API_KEY,
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3.5-sonnet-20240620',
-        max_tokens: 1000,
-        messages: [
-          { role: 'user', content: `You previously said this was your verdict: "${verdict}". Now, explain your reasoning. Original text:\n${text}` }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    const explanation = data?.content?.[0]?.text || 'No explanation returned.';
-    res.json({ explanation });
-  } catch (err) {
-    console.error('Error explaining verdict:', err);
-    res.status(500).json({ error: 'Explanation failed.' });
-  }
-});
-
