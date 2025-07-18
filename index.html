@@ -628,33 +628,32 @@
   }
 
   // Detect image type
-  typeBtn.addEventListener('click', async () => {
-  if (!currentImageFile) return alert('No image selected!');
+ typeBtn.addEventListener('click', async () => {
+  console.log('Detect Image clicked');
 
-  typeBtn.disabled = true;
-  typeBtn.textContent = 'Detecting…';
+  // Mock currentImageFile for testing
+  const currentImageFile = new File(['dummy content'], 'test.jpg', { type: 'image/jpeg' });
+
+  const formData = new FormData();
+  formData.append('media', currentImageFile);
 
   try {
-    const formData = new FormData();
-
-    if (typeof currentImageFile === 'string' && currentImageFile.startsWith('data:')) {
-      // Convert dataURL directly to File and append
-      const file = dataURLtoFile(currentImageFile);
-      formData.append('media', file);
-    } else if (currentImageFile instanceof File) {
-      // Append file directly
-      formData.append('media', currentImageFile);
-    } else {
-      throw new Error('Invalid image file');
-    }
-
     const response = await fetch('https://uncover-ai.onrender.com/image-detect', {
       method: 'POST',
       body: formData
     });
+    console.log('Response status:', response.status);
 
     const resultData = await response.json();
+    console.log('Response data:', resultData);
+
     if (!response.ok) throw new Error(resultData.error || 'Detection failed');
+  } catch (err) {
+    console.error('Fetch error:', err);
+  }
+});
+
+   
 
     const confidence = resultData.confidence ?? 0;
     const isAI = confidence > 50;
