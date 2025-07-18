@@ -79,7 +79,6 @@ app.post('/detect', async (req, res) => {
 
 app.post('/image-detect', upload.single('media'), async (req, res) => {
   if (!req.file) {
-    console.error('No file uploaded in the media field');
     return res.status(400).json({ error: 'Missing image file (field name should be "media")' });
   }
 
@@ -102,22 +101,45 @@ app.post('/image-detect', upload.single('media'), async (req, res) => {
     const result = await response.json();
 
     if (!response.ok) {
-      console.error('Sightengine API returned error:', result);
       return res.status(response.status).json({ error: 'Sightengine detection failed', raw: result });
     }
 
-    // Send back the AI detection result (adjust based on actual API response structure)
+    // NEW: Extract numeric confidence and label
+    let confidence = 0;
+    let label = "unknown";
+    let icon = "❓";
+    if (result.type && typeof result.type.ai_generated !== "undefined") {
+      // Sightengine's ai_generated: true/false/"likely"/"unknown"
+      if (result.type.ai_generated === true || result.type.ai_generated === "true") {
+        confidence = 80;
+        label = "ai";
+        icon = "🤖";
+      } else if (result.type.ai_generated === false || result.type.ai_generated === "false") {
+        confidence = 10;
+        label = "human";
+        icon = "👤";
+      } else if (result.type.ai_generated === "likely") {
+        confidence = 60;
+        label = "ai";
+        icon = "🤖";
+      } else {
+        confidence = 0;
+        label = "unknown";
+        icon = "❓";
+      }
+    }
+    // If Sightengine provides a real confidence score, use it instead
+
     res.json({
-      ai_generated: result.type?.ai_generated,
+      label,
+      confidence,
+      icon,
       raw: result,
     });
   } catch (err) {
-    console.error('Backend error in /image-detect:', err);
     res.status(500).json({ error: 'Image detection failed', details: err.message });
   }
 });
-
-
 // === 3. FAKE NEWS DETECTION VIA CLAUDE ===
 app.post('/fake-news-check', async (req, res) => {
   const { text } = req.body;
