@@ -310,15 +310,6 @@
   margin-bottom: 10px;
 }
 
-#imageConfidenceWrapper {
-  width: 80%;
-  height: 30px;
-  background-color: #ddd;
-  border-radius: 10px;
-  overflow: hidden;
-  margin: 12px auto;
-}
-
 #imageConfidenceBar {
   height: 100%;
   background-color: #4caf50; /* green by default */
@@ -407,7 +398,7 @@
    
   </div>
         </div>
-<div id="imageConfidenceWrapper"></div>
+
 
 
 
@@ -468,7 +459,7 @@
   const imageResult = document.getElementById('imageResult');
   const imageResultText = document.getElementById('imageResultText');
   const imageResultIcon = document.getElementById('imageResultIcon');
-  const imageConfidenceWrapper = document.getElementById('imageConfidenceWrapper');
+
   const imageConfidenceBar = document.getElementById('imageConfidenceBar');
   let stream = null;
   let currentImageFile = null;
@@ -720,7 +711,7 @@ document.addEventListener("DOMContentLoaded", () => {
       imageResult.className = 'result ' + (isAI ? 'ai' : 'human');
       imageResultText.textContent = `AI-generated confidence: ${confidence}%`;
       imageResultIcon.textContent = isAI ? '🤖' : '👤';
-      imageConfidenceWrapper.style.display = 'block';
+
       imageConfidenceBar.style.width = `${confidence}%`;
      console.log('Full detection result:', resultData);
 
