@@ -312,19 +312,33 @@
 
 #imageConfidenceWrapper {
   width: 80%;
-  height: 12px;
-  background-color: #ccc;
+  height: 30px;
+  background-color: #ddd;
   border-radius: 10px;
-  margin-top: 10px;
   overflow: hidden;
+  margin: 12px auto;
 }
 
 #imageConfidenceBar {
   height: 100%;
-  background-color: #4caf50;
+  background-color: #4caf50; /* green by default */
   width: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
   transition: width 0.4s ease;
 }
+
+#imageConfidenceText {
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
 
   </style>
 </head>
@@ -386,8 +400,12 @@
       <button id="typeBtn" style="display:none;" aria-label="insert photo">Detect photo type 🔍</button>
       <div id="imageResult" style="display: none;"></div>
   <div id="imageResultIcon"></div>
-  <div id="imageResultText"></div>
-  <div id="imageConfidenceWrapper" style="display: none;">
+<div id="imageConfidenceWrapper">
+  <div id="imageConfidenceBar">
+    <span id="imageConfidenceText"></span>
+  </div>
+</div>
+
     <div id="imageConfidenceBar"></div>
   </div>
 
