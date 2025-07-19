@@ -236,6 +236,96 @@
         padding: 8px 12px;
       }
     }
+    #image.section {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  max-width: 800px;
+  margin: auto;
+}
+
+#image h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: white;
+}
+
+#image p {
+  color: #ddd;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+#image button {
+  display: inline-block;
+  margin: 10px 10px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(to right, #6a5acd, #8a2be2);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+#image button:hover {
+  background: linear-gradient(to right, #7b68ee, #9932cc);
+}
+
+#camera,
+#imagePreview,
+#snapshot {
+  max-width: 90%;
+  border-radius: 14px;
+  margin-top: 20px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.25);
+}
+
+#imageResult {
+  margin-top: 30px;
+  padding: 20px;
+  border-radius: 14px;
+  color: white;
+  font-size: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#imageResult.ai {
+  background-color: #3a1c71;
+}
+
+#imageResult.human {
+  background-color: #006400;
+}
+
+#imageResultIcon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+#imageConfidenceWrapper {
+  width: 80%;
+  height: 12px;
+  background-color: #ccc;
+  border-radius: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+#imageConfidenceBar {
+  height: 100%;
+  background-color: #4caf50;
+  width: 0;
+  transition: width 0.4s ease;
+}
+
   </style>
 </head>
 <body>
